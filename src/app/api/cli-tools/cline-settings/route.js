@@ -1,6 +1,7 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
@@ -83,6 +84,8 @@ export async function POST(request) {
       return NextResponse.json({ error: "baseUrl, apiKey and model are required" }, { status: 400 });
     }
 
+    const keyToUse = await resolveCliApiKey(apiKey);
+
     await fs.mkdir(getDataDir(), { recursive: true });
 
     // Cline expects base WITHOUT /v1
@@ -97,7 +100,7 @@ export async function POST(request) {
     await fs.writeFile(getGlobalStatePath(), JSON.stringify(globalState, null, 2));
 
     const secrets = (await readJson(getSecretsPath())) || {};
-    secrets.openAiApiKey = apiKey;
+    secrets.openAiApiKey = keyToUse;
     await fs.writeFile(getSecretsPath(), JSON.stringify(secrets, null, 2));
 
     return NextResponse.json({ success: true, message: "Cline settings applied successfully!", globalStatePath: getGlobalStatePath() });

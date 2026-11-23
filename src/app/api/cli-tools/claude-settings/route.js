@@ -1,6 +1,7 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
@@ -159,6 +160,12 @@ export async function POST(request) {
     // Keep an existing token (real key or earlier config); only add when absent — Reset clears it.
     if (currentSettings.env?.ANTHROPIC_AUTH_TOKEN) {
       delete env.ANTHROPIC_AUTH_TOKEN;
+    }
+
+    // Resolve the auth token server-side so the placeholder "sk_9router" is
+    // never written (router keys are hashed at rest — see resolveApiKey.js).
+    if (env.ANTHROPIC_AUTH_TOKEN) {
+      env.ANTHROPIC_AUTH_TOKEN = await resolveCliApiKey(env.ANTHROPIC_AUTH_TOKEN);
     }
 
     // Merge new env with existing settings

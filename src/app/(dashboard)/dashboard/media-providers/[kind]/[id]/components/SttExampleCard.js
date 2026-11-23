@@ -28,7 +28,6 @@ export function SttExampleCard({ providerId }) {
   const [tagAudioEvents, setTagAudioEvents] = useState(false);
   const [diarize, setDiarize] = useState(false);
   const [numSpeakers, setNumSpeakers] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [useTunnel, setUseTunnel] = useState(false);
   const [localEndpoint, setLocalEndpoint] = useState("");
   const [tunnelEndpoint, setTunnelEndpoint] = useState("");
@@ -41,10 +40,9 @@ export function SttExampleCard({ providerId }) {
 
   useEffect(() => {
     setLocalEndpoint(window.location.origin);
-    fetch("/api/keys")
-      .then((r) => r.json())
-      .then((d) => { setApiKey((d.keys || []).find((k) => k.isActive !== false)?.key || ""); })
-      .catch(() => {});
+    // No /api/keys fetch: keys are hashed at rest, so the list API never
+    // returns a usable value. Run authenticates server-side via
+    // /api/dashboard-proxy; the curl snippet keeps the YOUR_KEY placeholder.
     fetch("/api/tunnel/status")
       .then((r) => r.json())
       .then((d) => { if (d.publicUrl) setTunnelEndpoint(d.publicUrl); })
@@ -71,7 +69,7 @@ export function SttExampleCard({ providerId }) {
   const modelFull = selectedModel ? `${providerAlias}/${selectedModel}` : "";
 
   const curlSnippet = `curl -X POST ${endpoint}/v1/audio/transcriptions \\
-  -H "Authorization: Bearer ${apiKey || "YOUR_KEY"}" \\
+  -H "Authorization: Bearer YOUR_KEY" \\
   -F "file=@${audioFile?.name || "audio.mp3"}" \\
   -F "model=${modelFull}"${allowedParams.includes("language") && language ? ` \\\n  -F "language=${language}"` : ""}${allowedParams.includes("response_format") ? ` \\\n  -F "response_format=${responseFormat}"` : ""}${allowedParams.includes("temperature") && temperature ? ` \\\n  -F "temperature=${temperature}"` : ""}${allowedParams.includes("prompt") && prompt ? ` \\\n  -F "prompt=${prompt}"` : ""}${allowedParams.includes("timestamps_granularity") && granularity ? ` \\\n  -F "timestamps_granularity=${granularity}"` : ""}${allowedParams.includes("tag_audio_events") && tagAudioEvents ? ` \\\n  -F "tag_audio_events=true"` : ""}${allowedParams.includes("diarize") && diarize ? ` \\\n  -F "diarize=true"` : ""}${allowedParams.includes("num_speakers") && !diarize && numSpeakers ? ` \\\n  -F "num_speakers=${numSpeakers}"` : ""}`;
 
@@ -102,9 +100,10 @@ export function SttExampleCard({ providerId }) {
         fd.append("num_speakers", numSpeakers);
       }
 
-      const headers = {};
-      if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
-      const res = await fetch("/api/v1/audio/transcriptions", { method: "POST", headers, body: fd });
+      // Run through the session-authenticated /api/dashboard-proxy, which
+      // supplies the server-side internal token (keys are hashed at rest;
+      // the list API never returns a usable key value).
+      const res = await fetch(`/api/dashboard-proxy?path=${encodeURIComponent("/v1/audio/transcriptions")}`, { method: "POST", body: fd });
       setLatency(Date.now() - start);
       const ct = res.headers.get("content-type") || "";
       const data = ct.includes("application/json") ? await res.json() : await res.text();
@@ -174,7 +173,7 @@ export function SttExampleCard({ providerId }) {
         {/* API Key */}
         <Row label="API Key">
           <span className="px-3 py-1.5 text-sm font-mono text-text-main bg-sidebar rounded-lg truncate block">
-            {apiKey ? `${apiKey.slice(0, 8)}${"\u2022".repeat(Math.min(20, Math.max(0, apiKey.length - 8)))}` : <span className="text-text-muted italic">No key configured</span>}
+            <span className="text-text-muted italic">Dashboard session (server token)</span>
           </span>
         </Row>
 

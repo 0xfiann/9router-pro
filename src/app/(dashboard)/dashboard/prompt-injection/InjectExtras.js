@@ -56,12 +56,15 @@ function extractResult(json) {
   return { text, finish: ch?.finish_reason || "", note };
 }
 
-async function callModel(key, model, prompt) {
+// Runs through the session-authenticated /api/dashboard-proxy, which
+// supplies the server-side internal token — keys are hashed at rest, so
+// the UI never holds a usable key value (see /api/models/test).
+async function callModel(model, prompt) {
   const t0 = performance.now();
   try {
-    const res = await fetch("/v1/chat/completions", {
+    const res = await fetch(`/api/dashboard-proxy?path=${encodeURIComponent("/v1/chat/completions")}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
         stream: false,
@@ -152,22 +155,20 @@ export function InjectionTester() {
   const selectedKey = keys.find((k) => k.id === keyId);
 
   useEffect(() => {
-    if (!selectedKey?.key) { setModels([]); return; }
+    if (!selectedKey) { setModels([]); return; }
     let alive = true;
     (async () => {
       try {
-        const r = await fetch("/v1/models", {
-          headers: { Authorization: `Bearer ${selectedKey.key}` },
-        });
+        const r = await fetch(`/api/dashboard-proxy?path=${encodeURIComponent("/v1/models")}`);
         const d = await r.json();
         if (alive) setModels((d?.data || []).map((m) => m.id).filter(Boolean));
       } catch { if (alive) setModels([]); }
     })();
     return () => { alive = false; };
-  }, [selectedKey?.key]);
+  }, [selectedKey?.id]);
 
   const run = async () => {
-    if (!selectedKey?.key || !modelA || running) return;
+    if (!selectedKey || !modelA || running) return;
     try {
       localStorage.setItem("injectTesterA", modelA);
       localStorage.setItem("injectTesterB", modelB);
@@ -175,9 +176,9 @@ export function InjectionTester() {
     setRunning(true);
     setResA(null);
     setResB(null);
-    const jobs = [callModel(selectedKey.key, modelA, prompt).then(setResA)];
+    const jobs = [callModel(modelA, prompt).then(setResA)];
     if (mode === "vs" && modelB.trim()) {
-      jobs.push(callModel(selectedKey.key, modelB.trim(), prompt).then(setResB));
+      jobs.push(callModel(modelB.trim(), prompt).then(setResB));
     }
     await Promise.all(jobs);
     setRunning(false);
@@ -265,7 +266,7 @@ export function InjectionTester() {
           <button
             type="button"
             onClick={run}
-            disabled={running || !selectedKey?.key || !modelA.trim()}
+            disabled={running || !selectedKey || !modelA.trim()}
             className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {running ? "Running…" : "Run test"}

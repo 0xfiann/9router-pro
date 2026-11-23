@@ -1,6 +1,7 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
@@ -78,6 +79,8 @@ export async function POST(request) {
       return NextResponse.json({ error: "baseUrl, apiKey and model are required" }, { status: 400 });
     }
 
+    const keyToUse = await resolveCliApiKey(apiKey);
+
     await fs.mkdir(getDataDir(), { recursive: true });
 
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
@@ -85,7 +88,7 @@ export async function POST(request) {
     const auth = (await readJson(getAuthPath())) || {};
     auth["openai-compatible"] = {
       type: "api-key",
-      apiKey,
+      apiKey: keyToUse,
       baseUrl: normalizedBaseUrl,
       model,
     };
@@ -94,7 +97,7 @@ export async function POST(request) {
     // Best-effort: update VS Code extension settings
     try {
       const vscode = (await readJson(getVscodeSettingsPath())) || {};
-      vscode["kilocode.customProvider"] = { name: "9Router", baseURL: normalizedBaseUrl, apiKey };
+      vscode["kilocode.customProvider"] = { name: "9Router", baseURL: normalizedBaseUrl, apiKey: keyToUse };
       vscode["kilocode.defaultModel"] = model;
       await fs.writeFile(getVscodeSettingsPath(), JSON.stringify(vscode, null, 2));
     } catch { /* VS Code settings not writable */ }

@@ -60,25 +60,19 @@ export default function ComboDetailPage() {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [testError, setTestError] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [connections, setConnections] = useState([]);
   const [modelAliases, setModelAliases] = useState({});
 
   const fetchAll = async () => {
     try {
-      const [comboRes, settingsRes, logsRes, keysRes, connsRes, aliasesRes] = await Promise.all([
+      const [comboRes, settingsRes, logsRes, connsRes, aliasesRes] = await Promise.all([
         fetch(`/api/combos/${id}`, { cache: "no-store" }),
         fetch("/api/settings", { cache: "no-store" }),
         fetch("/api/usage/logs", { cache: "no-store" }),
-        fetch("/api/keys", { cache: "no-store" }),
         fetch("/api/providers?lite=1", { cache: "no-store" }),
         fetch("/api/models/alias", { cache: "no-store" }),
       ]);
       if (aliasesRes.ok) setModelAliases((await aliasesRes.json()).aliases || {});
-      if (keysRes.ok) {
-        const k = await keysRes.json();
-        setApiKey((k.keys || []).find((x) => x.isActive !== false)?.key || "");
-      }
       if (connsRes.ok) setConnections(((await connsRes.json()).connections || []).filter((x) => x.isActive !== false));
       if (!comboRes.ok) { setCombo(null); setLoading(false); return; }
       const c = await comboRes.json();
@@ -183,9 +177,14 @@ export default function ComboDetailPage() {
     try {
       const path = EXAMPLE_PATHS[combo.kind];
       const body = EXAMPLE_BODIES[combo.kind](combo.name);
-      const headers = { "Content-Type": "application/json" };
-      if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
-      const res = await fetch(`/api${path}`, { method: "POST", headers, body: JSON.stringify(body) });
+      // Test through the session-authenticated /api/dashboard-proxy, which
+      // supplies the server-side internal token (keys are hashed at rest;
+      // the list API never returns a usable key value).
+      const res = await fetch(`/api/dashboard-proxy?path=${encodeURIComponent(path)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
       const latencyMs = Date.now() - start;
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -239,7 +238,7 @@ export default function ComboDetailPage() {
   const examplePath = EXAMPLE_PATHS[combo.kind];
   const exampleBody = combo.kind && EXAMPLE_BODIES[combo.kind] ? EXAMPLE_BODIES[combo.kind](combo.name) : null;
   const curlExample = examplePath
-    ? `curl -X POST http://localhost:20127${examplePath} \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer ${apiKey || "YOUR_KEY"}" \\\n  -d '${JSON.stringify(exampleBody)}'`
+    ? `curl -X POST http://localhost:20127${examplePath} \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer YOUR_KEY" \\\n  -d '${JSON.stringify(exampleBody)}'`
     : "";
   const backHref = getListingHref(combo.kind);
 

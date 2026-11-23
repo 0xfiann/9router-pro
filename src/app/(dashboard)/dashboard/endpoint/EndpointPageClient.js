@@ -794,16 +794,7 @@ export default function APIPageClient({ machineId }) {
   };
 
   // Closing discards the draft untouched: Cancel/X never save anything.
-  // Also hides the key again on the card if it was revealed in the modal.
   const closeEditModal = () => {
-    if (editTarget) {
-      const id = editTarget.id;
-      setVisibleKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    }
     setEditTarget(null);
     setEditDraft(null);
   };
@@ -895,11 +886,6 @@ export default function APIPageClient({ machineId }) {
           const res = await fetch(`/api/keys/${id}`, { method: "DELETE" });
           if (res.ok) {
             setKeys(keys.filter((k) => k.id !== id));
-            setVisibleKeys(prev => {
-              const next = new Set(prev);
-              next.delete(id);
-              return next;
-            });
           }
         } catch (error) {
           console.log("Error deleting key:", error);

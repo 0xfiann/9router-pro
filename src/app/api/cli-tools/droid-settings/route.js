@@ -1,6 +1,7 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
@@ -116,7 +117,7 @@ export async function POST(request) {
 
     // Normalize baseUrl to ensure /v1 suffix
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
-    const keyToUse = apiKey || "your_api_key";
+    const keyToUse = await resolveCliApiKey(apiKey);
 
     // Determine active model: prefer explicit activeModel, else first of modelsArray
     // If activeModel is explicitly empty string, no model will be set as default

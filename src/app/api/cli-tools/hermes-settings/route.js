@@ -1,6 +1,7 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import { apiErrorBody } from "@/lib/apiError";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -217,10 +218,12 @@ export async function POST(request) {
 
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
 
+    const keyToUse = await resolveCliApiKey(apiKey);
+
     // applyToAll refreshes endpoint + API key only (and the model blocks those belong to);
     // the stt wiring is per-profile and follows the single-profile path below.
     if (truthy(body.applyToAll ?? getQueryParam(request, "applyToAll"))) {
-      return await applyToAllProfiles({ normalizedBaseUrl, apiKey, model: defaultSel?.model });
+      return await applyToAllProfiles({ normalizedBaseUrl, apiKey: keyToUse, model: defaultSel?.model });
     }
 
     // Profile target: JSON body first, then ?profile= — callers reach for either.
@@ -253,7 +256,7 @@ export async function POST(request) {
     await writeHomeConfig(home, newYaml);
 
     // Update .env — upsert OPENAI_API_KEY only when caller provides one
-    await writeHomeEnv(home, apiKey);
+    await writeHomeEnv(home, keyToUse);
 
     return NextResponse.json({
       success: true,

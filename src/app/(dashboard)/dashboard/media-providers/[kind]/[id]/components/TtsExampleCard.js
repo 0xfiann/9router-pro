@@ -79,7 +79,6 @@ export function TtsExampleCard({ providerId }) {
   // Form state
   const [input, setInput]               = useState("Hello, this is a text to speech test.");
   const [style, setStyle]               = useState(""); // style/voice instructions (e.g. MiMo voicedesign)
-  const [apiKey, setApiKey]             = useState("");
   const [useTunnel, setUseTunnel]       = useState(false);
   const [localEndpoint, setLocalEndpoint]   = useState("");
   const [tunnelEndpoint, setTunnelEndpoint] = useState("");
@@ -101,19 +100,12 @@ export function TtsExampleCard({ providerId }) {
   const [byLang, setByLang]                 = useState({});
   // Language hint (e.g. Gemini/MiMo): guides the spoken language without affecting voice selection
   const [languageHint, setLanguageHint]     = useState("");
-  // Number of stored provider connections (shown when no dashboard API key)
-  const [connectionCount, setConnectionCount] = useState(0);
 
   useEffect(() => {
     setLocalEndpoint(window.location.origin);
-    fetch("/api/keys")
-      .then((r) => r.json())
-      .then((d) => { setApiKey((d.keys || []).find((k) => k.isActive !== false)?.key || ""); })
-      .catch(() => {});
-    fetch("/api/providers?lite=1", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => { setConnectionCount((d.connections || []).filter((c) => c.provider === providerId && c.isActive !== false).length); })
-      .catch(() => {});
+    // No /api/keys fetch: keys are hashed at rest, so the list API never
+    // returns a usable value. Run authenticates server-side via
+    // /api/dashboard-proxy; the curl snippet keeps the YOUR_KEY placeholder.
     fetch("/api/tunnel/status")
       .then((r) => r.json())
       .then((d) => { if (d.publicUrl) setTunnelEndpoint(d.publicUrl); })
@@ -273,7 +265,7 @@ export function TtsExampleCard({ providerId }) {
   const outputExt = responseFormat === "pcm" ? "pcm" : (responseFormat === "wav" || providerId === "ollama-local") ? "wav" : "mp3";
   const curlSnippet = `curl -X POST ${endpoint}/v1/audio/speech${responseFormat === "json" ? "?response_format=json" : ""} \\
   -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer ${apiKey || "YOUR_KEY"}" \\
+  -H "Authorization: Bearer YOUR_KEY" \\
   -d '${JSON.stringify(ttsBody)}' \\
   ${responseFormat === "json" ? "" : `--output speech.${outputExt}`}`;
 
@@ -286,12 +278,13 @@ export function TtsExampleCard({ providerId }) {
     setJsonResponse(null);
     const start = Date.now();
     try {
-      const headers = { "Content-Type": "application/json" };
-      if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
-      const url = `/api/v1/audio/speech${responseFormat === "json" ? "?response_format=json" : ""}`;
-      const res = await fetch(url, {
+      // Run through the session-authenticated /api/dashboard-proxy, which
+      // supplies the server-side internal token (keys are hashed at rest;
+      // the list API never returns a usable key value).
+      const targetPath = `/v1/audio/speech${responseFormat === "json" ? "?response_format=json" : ""}`;
+      const res = await fetch(`/api/dashboard-proxy?path=${encodeURIComponent(targetPath)}`, {
         method: "POST",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...ttsBody, input: input.trim() }),
       });
       setLatency(Date.now() - start);
@@ -357,11 +350,7 @@ export function TtsExampleCard({ providerId }) {
           </Row>
           <Row label="API Key">
             <span className="px-3 py-1.5 text-sm font-mono text-text-main bg-sidebar rounded-lg truncate block">
-              {apiKey
-                ? `${apiKey.slice(0, 8)}${"•".repeat(Math.min(20, Math.max(0, apiKey.length - 8)))}`
-                : connectionCount > 0
-                  ? <span className="text-text-muted italic">Using stored key(s) · {connectionCount} connection{connectionCount > 1 ? "s" : ""}</span>
-                  : <span className="text-text-muted italic">No key configured</span>}
+              <span className="text-text-muted italic">Dashboard session (server token)</span>
             </span>
           </Row>
 

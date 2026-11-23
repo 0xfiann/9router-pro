@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import { apiErrorResponse } from "@/lib/apiError";
 import {
   getMitmStatus,
@@ -123,7 +124,8 @@ export async function POST(request) {
       }
     }
 
-    const result = await startServer(apiKey, pwd, !!forceKillPort443);
+    const keyToUse = await resolveCliApiKey(apiKey);
+    const result = await startServer(keyToUse, pwd, !!forceKillPort443);
     if (!isWin) setCachedPassword(pwd);
 
     return NextResponse.json({ success: true, running: result.running, pid: result.pid });

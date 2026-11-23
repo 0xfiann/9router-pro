@@ -366,7 +366,15 @@ function isTokenExpired(connection) {
 
 async function testOAuthConnection(connection, effectiveProxy = null) {
   const config = OAUTH_TEST_CONFIG[connection.provider];
-  if (!config) return { valid: false, error: "Provider test not supported", refreshed: false };
+  if (!config) {
+    // Generic fallback for OAuth providers with no specific test case:
+    // probe the OpenAI-format /models endpoint with the access token.
+    if (connection.accessToken) {
+      const generic = await probeGenericOpenAIProvider(connection.provider, connection.accessToken, effectiveProxy);
+      if (generic) return { ...generic, refreshed: false };
+    }
+    return { valid: false, error: "Provider test not supported", refreshed: false };
+  }
   if (!connection.accessToken) return { valid: false, error: "No access token", refreshed: false };
 
   // Cursor uses protobuf API - can only verify token exists, not test endpoint
@@ -517,6 +525,45 @@ async function fetchWithConnectionProxy(url, options = {}, effectiveProxy = null
     connectionProxyUrl: effectiveProxy.connectionProxyUrl,
     connectionNoProxy: effectiveProxy.connectionNoProxy || "",
   });
+}
+
+// Generic probe for OpenAI-format providers with no specific test case
+// (mirrors the add-provider validate route's default case): GET /models
+// with the token, falling back to a minimal chat probe on an ambiguous
+// response. Returns null when the provider has no OpenAI-format config,
+// so the caller can keep its "not supported" result.
+async function probeGenericOpenAIProvider(provider, token, effectiveProxy = null) {
+  const cfg = PROVIDERS[provider];
+  if (!cfg || cfg.format !== "openai" || !cfg.baseUrl) return null;
+  if (cfg.noAuth) return { valid: true, error: null };
+  // Build auth headers based on cfg.authHeader (default: bearer)
+  const headers = { "Content-Type": "application/json", ...(cfg.headers || {}) };
+  if (cfg.authHeader === "x-api-key") headers["X-API-Key"] = token;
+  else headers["Authorization"] = `Bearer ${token}`;
+  // Try /models first (fast GET), fallback to chat probe on ambiguous response
+  const modelsUrl = cfg.baseUrl.replace(/\/chat\/completions$/, "/models").replace(/\/chatbot$/, "/models");
+  let probeOk = null;
+  try {
+    const probeRes = await fetchWithConnectionProxy(modelsUrl, { headers }, effectiveProxy);
+    if (probeRes.status === 401 || probeRes.status === 403) probeOk = false;
+    else if (probeRes.ok) probeOk = true;
+  } catch { /* fallback to chat */ }
+  if (probeOk !== null) {
+    return { valid: probeOk, error: probeOk ? null : "Invalid API key" };
+  }
+  // Fallback: minimal chat probe
+  try {
+    const defaultModel = getDefaultModel(provider) || "test";
+    const chatRes = await fetchWithConnectionProxy(cfg.baseUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ model: defaultModel, messages: [{ role: "user", content: "ping" }], max_tokens: 1 }),
+    }, effectiveProxy);
+    const valid = chatRes.status !== 401 && chatRes.status !== 403;
+    return { valid, error: valid ? null : "Invalid API key" };
+  } catch (err) {
+    return { valid: false, error: err.message };
+  }
 }
 
 async function testApiKeyConnection(connection, effectiveProxy = null) {
@@ -943,7 +990,7 @@ async function testApiKeyConnection(connection, effectiveProxy = null) {
       case "qoder":
       case "qoder-cn": {
         // PAT (pt-...) exchange → job token. A successful exchange proves the PAT.
-        const exchangeUrl = provider === "qoder-cn"
+        const exchangeUrl = connection.provider === "qoder-cn"
           ? "https://openapi.qoder.com.cn/api/v1/jobToken/exchange"
           : "https://openapi.qoder.sh/api/v1/jobToken/exchange";
         const raw = connection.apiKey || "";
@@ -1002,8 +1049,15 @@ case "llm7": {
         }, effectiveProxy);
         return { valid: res.ok, error: res.ok ? null : "Invalid API key", refreshed: false };
       }
-      default:
+      default: {
+        // Generic fallback for API-key providers with no specific test
+        // case (mirrors the add-provider validate route): probe the
+        // OpenAI-format /models endpoint with the key. Only reached when
+        // no specific case matched, so existing test behavior is unchanged.
+        const generic = await probeGenericOpenAIProvider(connection.provider, connection.apiKey, effectiveProxy);
+        if (generic) return generic;
         return { valid: false, error: "Provider test not supported" };
+      }
     }
   } catch (err) {
     return { valid: false, error: err.message };

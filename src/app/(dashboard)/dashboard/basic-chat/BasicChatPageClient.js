@@ -245,12 +245,11 @@ export default function BasicChatPageClient() {
     setIsHydrated(true);
   }, []);
 
-  // API keys for sending: Basic Chat talks to the public LLM pipeline
-  // (/v1/chat/completions), which authenticates by API key — the same
-  // pattern as the prompt-injection tester. The old code posted to
-  // /api/dashboard/chat/completions, a route that never existed (404 on
-  // every send). Keys are dashboard-gated; only names + last 4 chars are
-  // ever rendered, the value itself only goes into the Authorization header.
+  // API keys for the picker: sends go through the session-authenticated
+  // /api/dashboard-proxy, which supplies the server-side internal token
+  // (the /api/models/test pattern) — the UI never sees a key value. Keys
+  // are hashed at rest, so GET /api/keys returns only keyMasked/last4;
+  // the picker lists names + last 4 chars.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -258,7 +257,7 @@ export default function BasicChatPageClient() {
         const res = await fetch("/api/keys", { cache: "no-store" });
         const data = await res.json().catch(() => ({}));
         if (cancelled || !Array.isArray(data.keys)) return;
-        const usable = data.keys.filter((k) => k?.key);
+        const usable = data.keys.filter((k) => k?.id);
         setApiKeys(usable);
         const saved = globalThis.localStorage.getItem(STORAGE_KEYS.apiKeyId) || "";
         if (!saved && usable.length > 0) setActiveApiKeyId(usable[0].id);
@@ -648,17 +647,10 @@ export default function BasicChatPageClient() {
     const model = activeModel || activeProviderGroup?.models?.[0] || null;
     if (!model) return;
 
-    // The LLM pipeline authenticates by API key (requireApiKey defaults
-    // true). With keys available but none picked, fail here with a clear
-    // message instead of a bare 401 mid-stream. With no keys at all, send
-    // without a header and let the server decide (local mode works when
-    // requireApiKey is off; otherwise its 401 surfaces below).
-    const apiKey = apiKeys.find((k) => k.id === activeApiKeyId)?.key || null;
-    if (apiKeys.length > 0 && !apiKey) {
-      setLoadError("Pilih API key dulu untuk mengirim (buat di Endpoint & Key bila belum ada).");
-      return;
-    }
-
+    // Sends go through /api/dashboard-proxy, which authenticates the
+    // upstream /v1 call with the server-side internal token — no client
+    // key is needed to send (keys are hashed at rest; the list API never
+    // returns a usable value). The picker above is display-only.
     const userText = draft.trim();
     if (!userText && attachments.length === 0) return;
 
@@ -721,12 +713,11 @@ export default function BasicChatPageClient() {
       }));
 
     try {
-      const response = await fetch("/v1/chat/completions", {
+      const response = await fetch(`/api/dashboard-proxy?path=${encodeURIComponent("/v1/chat/completions")}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "text/event-stream",
-          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body: JSON.stringify({
           model: model.requestModel || model.id,
@@ -896,7 +887,7 @@ export default function BasicChatPageClient() {
               ) : (
                 apiKeys.map((k) => (
                   <option key={k.id} value={k.id}>
-                    {k.name || k.id} (…{String(k.key).slice(-4)})
+                    {k.name || k.id}{k.last4 || k.keyMasked ? ` (…${k.last4 || String(k.keyMasked).slice(-4)})` : ""}
                   </option>
                 ))
               )}

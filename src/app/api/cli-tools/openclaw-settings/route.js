@@ -1,6 +1,7 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
@@ -144,6 +145,8 @@ export async function POST(request) {
       return NextResponse.json({ error: "baseUrl and model are required" }, { status: 400 });
     }
 
+    const keyToUse = await resolveCliApiKey(apiKey);
+
     const openclawDir = getOpenClawDir();
     const settingsPath = getOpenClawSettingsPath();
 
@@ -197,7 +200,7 @@ export async function POST(request) {
     // Update models.providers.9router with all models
     settings.models.providers["9router"] = {
       baseUrl: normalizedBaseUrl,
-      apiKey: apiKey || "your_api_key",
+      apiKey: keyToUse,
       api: "openai-completions",
       models: [...allModelIds].map((m) => ({ id: m, name: m.split("/").pop() || m })),
     };
@@ -216,7 +219,7 @@ export async function POST(request) {
           if (!agent.agentDir) return;
           const agentModel = agentModels[agent.id];
           const modelToWrite = agentModel || model; // fallback to default
-          await writeAgentModels(agent.agentDir, modelToWrite, normalizedBaseUrl, apiKey);
+          await writeAgentModels(agent.agentDir, modelToWrite, normalizedBaseUrl, keyToUse);
         })
       );
     }

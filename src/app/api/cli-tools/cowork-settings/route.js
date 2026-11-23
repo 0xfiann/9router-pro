@@ -1,6 +1,7 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
@@ -320,6 +321,8 @@ export async function POST(request) {
       return NextResponse.json({ error: "At least one model is required" }, { status: 400 });
     }
 
+    const keyToUse = await resolveCliApiKey(apiKey);
+
     // Respect empty array (user toggled all off); fallback to defaults only when undefined.
     const pluginsArray = Array.isArray(plugins) ? plugins : DEFAULT_PLUGINS;
     const localPluginNames = Array.isArray(localPlugins) ? localPlugins : [];
@@ -338,7 +341,7 @@ export async function POST(request) {
       ...SECURITY_RELAX,
       inferenceProvider: PROVIDER,
       inferenceGatewayBaseUrl: baseUrl,
-      inferenceGatewayApiKey: apiKey,
+      inferenceGatewayApiKey: keyToUse,
       inferenceModels: modelsArray.map((name) => ({ name })),
     };
     if (managedMcpServers.length > 0) newConfig.managedMcpServers = managedMcpServers;

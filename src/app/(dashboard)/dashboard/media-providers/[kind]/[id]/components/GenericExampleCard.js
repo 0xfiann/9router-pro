@@ -60,7 +60,6 @@ export function GenericExampleCard({ providerId, kind }) {
   const [extraValues, setExtraValues] = useState(() =>
     (safeExConfig.extraFields || []).reduce((acc, f) => { acc[f.key] = f.default ?? ""; return acc; }, {})
   );
-  const [apiKey, setApiKey] = useState("");
   const [useTunnel, setUseTunnel] = useState(false);
   const [localEndpoint, setLocalEndpoint] = useState("");
   const [tunnelEndpoint, setTunnelEndpoint] = useState("");
@@ -78,10 +77,9 @@ export function GenericExampleCard({ providerId, kind }) {
 
   useEffect(() => {
     setLocalEndpoint(window.location.origin);
-    fetch("/api/keys")
-      .then((r) => r.json())
-      .then((d) => { setApiKey((d.keys || []).find((k) => k.isActive !== false)?.key || ""); })
-      .catch(() => {});
+    // No /api/keys fetch: keys are hashed at rest, so the list API never
+    // returns a usable value. Run authenticates server-side via
+    // /api/dashboard-proxy; the curl snippet keeps the YOUR_KEY placeholder.
     fetch("/api/tunnel/status")
       .then((r) => r.json())
       .then((d) => { if (d.publicUrl) setTunnelEndpoint(d.publicUrl); })
@@ -140,7 +138,7 @@ export function GenericExampleCard({ providerId, kind }) {
   const wantBinary = kind === "image" && imageOutputFormat === "binary";
   const useStreaming = kind === "image" && providerId === "codex" && !wantBinary;
   const apiPathWithQuery = `${apiPath}${wantBinary ? "?response_format=binary" : ""}`;
-  const headersPreview = `-H "Content-Type: application/json" \\\n  -H "Authorization: Bearer ${apiKey || "YOUR_KEY"}"${pinnedConnectionId ? ` \\\n  -H "x-connection-id: ${pinnedConnectionId}"` : ""}${useStreaming ? ` \\\n  -H "Accept: text/event-stream"` : ""}`;
+  const headersPreview = `-H "Content-Type: application/json" \\\n  -H "Authorization: Bearer YOUR_KEY"${pinnedConnectionId ? ` \\\n  -H "x-connection-id: ${pinnedConnectionId}"` : ""}${useStreaming ? ` \\\n  -H "Accept: text/event-stream"` : ""}`;
   const curlSnippet = `curl -X ${kindConfig.endpoint.method} ${endpoint}${apiPathWithQuery} \\
   ${headersPreview.replace(/\\\n  /g, "\\\n  ")} \\
   -d '${JSON.stringify(requestBody)}'${wantBinary ? " \\\n  --output image.png" : ""}`;
@@ -155,12 +153,15 @@ export function GenericExampleCard({ providerId, kind }) {
     if (binaryImageUrl) { try { URL.revokeObjectURL(binaryImageUrl); } catch {} setBinaryImageUrl(""); }
     const start = Date.now();
     try {
+      // Run through the session-authenticated /api/dashboard-proxy, which
+      // supplies the server-side internal token (keys are hashed at rest;
+      // the list API never returns a usable key value). The proxy forwards
+      // x-connection-id and Accept; auth is server-side only.
       const headers = { "Content-Type": "application/json" };
-      if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
       if (pinnedConnectionId) headers["x-connection-id"] = pinnedConnectionId;
       if (useStreaming) headers["Accept"] = "text/event-stream";
       const body = { ...requestBody, model: modelFull };
-      const res = await fetch(`/api${apiPathWithQuery}`, {
+      const res = await fetch(`/api/dashboard-proxy?path=${encodeURIComponent(apiPathWithQuery)}`, {
         method: kindConfig.endpoint.method,
         headers,
         body: JSON.stringify(body),
@@ -299,7 +300,7 @@ export function GenericExampleCard({ providerId, kind }) {
         {/* API Key */}
         <Row label="API Key">
           <span className="px-3 py-1.5 text-sm font-mono text-text-main bg-sidebar rounded-lg truncate block">
-            {apiKey ? `${apiKey.slice(0, 8)}${"\u2022".repeat(Math.min(20, Math.max(0, apiKey.length - 8)))}` : <span className="text-text-muted italic">No key configured</span>}
+            <span className="text-text-muted italic">Dashboard session (server token)</span>
           </span>
         </Row>
 

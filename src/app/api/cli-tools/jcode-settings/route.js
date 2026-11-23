@@ -1,6 +1,7 @@
 "use server";
 
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import { apiErrorResponse } from "@/lib/apiError";
 import fs from "fs/promises";
 import path from "path";
@@ -140,6 +141,8 @@ export async function POST(request) {
       );
     }
 
+    const keyToUse = await resolveCliApiKey(apiKey);
+
     const normalizedBaseUrl = baseUrl.endsWith("/v1")
       ? baseUrl
       : `${baseUrl}/v1`;
@@ -170,7 +173,7 @@ export async function POST(request) {
     await fs.mkdir(jcodeConfigDir, { recursive: true });
 
     const env = await readProviderEnv();
-    env.JCODE_9ROUTER_API_KEY = apiKey;
+    env.JCODE_9ROUTER_API_KEY = keyToUse;
     await writeProviderEnv(env);
 
     return NextResponse.json({

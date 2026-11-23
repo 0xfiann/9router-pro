@@ -38,10 +38,9 @@ export function EmbeddingExampleCard({ providerId, customAlias }) {
 
   useEffect(() => {
     setLocalEndpoint(window.location.origin);
-    fetch("/api/keys")
-      .then((r) => r.json())
-      .then((d) => { setApiKey((d.keys || []).find((k) => k.isActive !== false)?.key || ""); })
-      .catch(() => {});
+    // No /api/keys fetch: keys are hashed at rest, so the list API never
+    // returns a usable value. The API Key field below is paste-your-own
+    // and only feeds the curl snippet; Run authenticates server-side.
     fetch("/api/tunnel/status")
       .then((r) => r.json())
       .then((d) => { if (d.publicUrl) setTunnelEndpoint(d.publicUrl); })
@@ -71,11 +70,12 @@ export function EmbeddingExampleCard({ providerId, customAlias }) {
     setResult(null);
     const start = Date.now();
     try {
-      const headers = { "Content-Type": "application/json" };
-      if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
-      const res = await fetch("/api/v1/embeddings", {
+      // Run through the session-authenticated /api/dashboard-proxy, which
+      // supplies the server-side internal token (keys are hashed at rest;
+      // the list API never returns a usable key value).
+      const res = await fetch(`/api/dashboard-proxy?path=${encodeURIComponent("/v1/embeddings")}`, {
         method: "POST",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody()),
       });
       const latencyMs = Date.now() - start;

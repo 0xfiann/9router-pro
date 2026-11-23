@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveCliApiKey } from "../resolveApiKey.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
@@ -115,6 +116,8 @@ export async function POST(request) {
       return NextResponse.json({ error: "baseUrl, apiKey and model are required" }, { status: 400 });
     }
 
+    const keyToUse = await resolveCliApiKey(apiKey);
+
     const codexDir = getCodexDir();
     const configPath = getCodexConfigPath();
 
@@ -140,7 +143,7 @@ export async function POST(request) {
       name: "9Router",
       base_url: normalizedBaseUrl,
       wire_api: "responses",
-      http_headers: { Authorization: `Bearer ${apiKey}` },
+      http_headers: { Authorization: `Bearer ${keyToUse}` },
     });
 
     // Subagent model is a scalar under [agents]; agents.<role> now means a custom role
