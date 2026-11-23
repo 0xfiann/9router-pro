@@ -1,4 +1,4 @@
-// Admin helpers (9Router Pro, pro.29) — pure, no Node imports, so both the
+// Admin helpers (9router_Pro, pro.29) — pure, no Node imports, so both the
 // server routes and the Admin client can use them.
 export function formatBytes(n) {
   const v = Number(n);

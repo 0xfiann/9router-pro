@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Card, Button, Input } from "@/shared/components";
-import ModderSocials from "@/shared/components/ModderSocials";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -159,13 +158,7 @@ export default function LoginPage() {
       <div className="landing-grid absolute inset-0 pointer-events-none" aria-hidden="true" />
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-1">9Router Pro</h1>
-          <p className="mb-2 text-xs text-text-subtle">
-            Modder by <span className="font-semibold text-brand-500">Gienetic</span>
-          </p>
-          <div className="mb-3 flex items-center justify-center">
-            <ModderSocials />
-          </div>
+          <h1 className="text-3xl font-bold text-primary mb-1">9router_Pro</h1>
           <p className="text-text-muted">
             {samlAvailable
               ? "Sign in with SAML 2.0 Single Sign-On"

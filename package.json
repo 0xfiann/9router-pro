@@ -1,16 +1,16 @@
 {
-  "name": "9router-pro",
+  "name": "9router_pro",
   "version": "0.5.109-pro.31",
   "bin": {
-    "9router-pro": "./cli/cli.js"
+    "9router_pro": "./cli/cli.js"
   },
-  "description": "9Router Pro by Gienetic \u2014 AI router with a Prompt Inject engine (per-model / per-key / global system prompts), based on 9Router by decolua",
-  "author": "Gienetic",
+  "description": "9router_Pro by 0xfiann \u2014 AI router with a Prompt Inject engine (per-model / per-key / global system prompts), based on 9Router by decolua",
+  "author": "0xfiann",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/giienew/9router-pro.git"
+    "url": "git+https://github.com/0xfiann/9router-pro.git"
   },
-  "homepage": "https://github.com/giienew/9router-pro#readme",
+  "homepage": "https://github.com/0xfiann/9router-pro#readme",
   "license": "MIT",
   "private": true,
   "engines": {

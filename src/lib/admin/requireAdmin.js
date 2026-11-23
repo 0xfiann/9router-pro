@@ -1,4 +1,4 @@
-// Shared gate for the Admin API routes (9Router Pro, pro.29).
+// Shared gate for the Admin API routes (9router_Pro, pro.29).
 // Strict dashboard-session check — the same bar as /api/security-log:
 // a valid `auth_token` cookie is required. An API key alone never opens
 // these routes, and requireLogin=false does not bypass them either,

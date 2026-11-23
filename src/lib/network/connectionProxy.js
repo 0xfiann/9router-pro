@@ -255,7 +255,7 @@ export async function resolveEffectiveProxyPoolId(providerOverride, providerId, 
 }
 
 /**
- * Auto proxy for connection TESTS (9Router Pro): when a connection has
+ * Auto proxy for connection TESTS (9router_Pro): when a connection has
  * no proxy of its own, a test may borrow one from the active standard
  * pools (round-robin) so the test reflects proxied reality instead of
  * the server's direct IP. Best-effort only — callers fall back to a

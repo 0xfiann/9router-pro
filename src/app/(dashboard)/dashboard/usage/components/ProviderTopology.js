@@ -92,9 +92,9 @@ ProviderNode.propTypes = {
   data: PropTypes.object.isRequired,
 };
 
-// Center 9Router node — icon only: the Pro logo image itself (gradient
-// square + syringe + PRO pill, public/logo-pro-v3.png). No circle, no text, no
-// separate pill, no count badge — the logo carries the branding.
+// Center 9Router node — icon only: the logo image itself (violet square +
+// white asterisk, public/logo.svg). No circle, no text, no separate pill,
+// no count badge — the logo carries the branding.
 function RouterNode() {
   return (
     <div
@@ -107,8 +107,8 @@ function RouterNode() {
       <Handle type="source" position={Position.Right} id="right" className="!bg-transparent !border-0 !w-0 !h-0" />
 
       <img
-        src="/logo-pro-v3.png"
-        alt="9Router Pro"
+        src="/logo.svg"
+        alt="9router_Pro"
         className="w-full h-full rounded-[28px] object-cover"
         loading="lazy"
         decoding="async"

@@ -413,7 +413,7 @@ export default function ProvidersPage() {
     fetchData();
   }, []);
 
-  // Stats come pre-aggregated from /api/providers?summary=1 (9Router Pro) —
+  // Stats come pre-aggregated from /api/providers?summary=1 (9router_Pro) —
   // the page no longer downloads every connection just to count them.
   const getProviderStats = (providerId, authType) => {
     const authTypes = Array.isArray(authType) ? authType : [authType];

@@ -1,4 +1,4 @@
-// Per-model rate limit (9Router Pro, pro.29 item D) — in-memory,
+// Per-model rate limit (9router_Pro, pro.29 item D) — in-memory,
 // session-scoped, per-provider+model admission control for CUSTOM
 // providers (user-created OpenAI/Anthropic-compatible nodes), so one
 // hot model cannot drain a provider's quota.

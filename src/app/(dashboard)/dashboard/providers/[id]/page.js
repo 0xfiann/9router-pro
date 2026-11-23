@@ -51,7 +51,7 @@ export default function ProviderDetailPage() {
   const providerId = params.id;
   const { getCaps } = useModelCaps();
   const [connections, setConnections] = useState([]);
-  // 9Router Pro: server-side pagination + search for the connection list.
+  // 9router_Pro: server-side pagination + search for the connection list.
   const [connTotal, setConnTotal] = useState(0);
   const [connPage, setConnPage] = useState(1);
   const [connSearchInput, setConnSearchInput] = useState("");
@@ -387,7 +387,7 @@ export default function ProviderDetailPage() {
     }
   }, [providerId, isCompatible]);
 
-  // 9Router Pro: append the next page of connections (server-side pagination).
+  // 9router_Pro: append the next page of connections (server-side pagination).
   const loadMoreConnections = async () => {
     if (loadingMore || connections.length >= connTotal) return;
     setLoadingMore(true);
@@ -407,7 +407,7 @@ export default function ProviderDetailPage() {
     setLoadingMore(false);
   };
 
-  // 9Router Pro: debounced server-side search over name/email.
+  // 9router_Pro: debounced server-side search over name/email.
   const handleConnSearch = (value) => {
     setConnSearchInput(value);
     clearTimeout(connSearchTimer.current);

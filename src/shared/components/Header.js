@@ -6,7 +6,6 @@ import Link from "next/link";
 import PropTypes from "prop-types";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import HeaderMenu from "@/shared/components/HeaderMenu";
-import DonateModal from "@/shared/components/DonateModal";
 import { Modal, Input, Button } from "@/shared/components";
 import { getNameFontStyle, DEFAULT_NAME } from "@/shared/constants/nameStyles";
 import { cn } from "@/shared/utils/cn";
@@ -213,9 +212,8 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState("");
   const [loginMethod, setLoginMethod] = useState("");
-  const [donateOpen, setDonateOpen] = useState(false);
 
-  // 9Router Pro: personal display name where the theme/accent icon buttons
+  // 9router_Pro: personal display name where the theme/accent icon buttons
   // used to sit (those moved into the header menu). Accent-colored text in a
   // fixed handwriting style, click to edit the name. Persisted server-side
   // in settings (profileName) so it follows the user across devices.
@@ -398,14 +396,6 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
         )}
         <HeaderSearch />
         <button
-          onClick={() => setDonateOpen(true)}
-          className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-pink-500/30 bg-pink-500/10 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 transition-colors text-sm font-medium"
-          aria-label="Donate"
-        >
-          <span className="material-symbols-outlined text-[18px]">volunteer_activism</span>
-          <span className="hidden sm:inline">Donate</span>
-        </button>
-        <button
           onClick={openNameEditor}
           className="max-w-[110px] cursor-pointer truncate px-1 text-[15px] leading-6 text-primary transition-opacity hover:opacity-75 sm:max-w-[180px]"
           style={getNameFontStyle("caveat")}
@@ -415,7 +405,6 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
         </button>
         <HeaderMenu onLogout={handleLogout} />
       </div>
-      <DonateModal isOpen={donateOpen} onClose={() => setDonateOpen(false)} />
       <Modal isOpen={nameOpen} onClose={() => setNameOpen(false)} title="Customize your name" size="xs" bodyClassName="p-4">
         <div className="flex flex-col gap-2.5">
           <Input

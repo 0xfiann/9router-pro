@@ -2083,8 +2083,8 @@ export default function ProfilePage() {
         isOpen={shutdownOpen}
         onClose={() => setShutdownOpen(false)}
         onConfirm={handleShutdown}
-        title="Shut down 9Router Pro?"
-        message="Are you sure you want to shut down 9Router Pro? The dashboard and API will stop until PM2 restarts it."
+        title="Shut down 9router_Pro?"
+        message="Are you sure you want to shut down 9router_Pro? The dashboard and API will stop until PM2 restarts it."
         confirmText="Shut down"
         cancelText="Cancel"
         variant="danger"

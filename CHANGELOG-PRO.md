@@ -1,8 +1,16 @@
-# 9Router Pro — Changelog
+# 9router_Pro — Changelog
 
 Pro releases are tagged `v<upstream>-pro.<n>` (e.g. `v0.5.104-pro.2`) and
 published as GitHub releases in this repo. The dashboard's update checker
 follows these releases.
+
+## Unreleased — fork rebrand
+
+- **Rebrand to 9router_Pro**: new name across the dashboard, landing page, manifests, and package metadata; new logo — a white eight-spoked asterisk (✳︎) on the violet theme colour (#8B5CF6) — replacing the syringe mark.
+- **Donations disabled**: the Donate button, modal, and donate data are removed.
+- **Modder socials removed**: the Gienetic credit and GitHub/Telegram links are gone from the sidebar, login page, footer, and welcome modal.
+- **Changelog and update check repointed** to this fork (`0xfiann/9router-pro`).
+- **npm updater disabled**: the update endpoint returns 410, the updater engine is stubbed, and the sidebar update panel is removed. Updates ship as git deployments from this repo.
 
 ## v0.5.109-pro.31
 

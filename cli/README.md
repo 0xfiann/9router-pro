@@ -1,8 +1,8 @@
-# 9Router Pro — by Gienetic
+# 9router_Pro — by 0xfiann
 
 **A Pro edition of 9Router with Prompt Injection: one injection per target — global, per API key, per model — as a system prompt or a scripted chat.**
 
-9Router Pro is a local AI router: connect every AI code tool (Claude Code, Cursor, Codex, Gemini, OpenCode, Cline, OpenClaw…) to 40+ providers and 100+ models through one endpoint, with token saving, smart fallback and multi-account support.
+9router_Pro is a local AI router: connect every AI code tool (Claude Code, Cursor, Codex, Gemini, OpenCode, Cline, OpenClaw…) to 40+ providers and 100+ models through one endpoint, with token saving, smart fallback and multi-account support.
 
 ## Install
 
@@ -23,11 +23,11 @@ The dashboard opens at `http://localhost:20127` (the original 9Router uses 20128
 - **Balanced fallback + Anti-Flaky Guard** — health-tiered account selection and automatic retries on flaky upstream responses.
 - **Themes & languages** — a flat Dark Pro theme, accent presets plus a custom color picker, and a fully localized dashboard (34 languages).
 
-Full documentation, screenshots and the feature-by-feature comparison with the original live in the [GitHub repository](https://github.com/giienew/9router-pro).
+Full documentation, screenshots and the feature-by-feature comparison with the original live in the [GitHub repository](https://github.com/0xfiann/9router-pro).
 
 ## Based on
 
-[9Router](https://github.com/decolua/9router) by decolua (MIT). 9Router Pro is an independent Pro edition maintained by [Gienetic](https://github.com/giienew).
+[9Router](https://github.com/decolua/9router) by decolua (MIT). 9router_Pro is an independent Pro edition maintained by [0xfiann](https://github.com/0xfiann).
 
 ## License
 

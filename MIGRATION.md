@@ -1,6 +1,6 @@
-# Migrating from 9Router (original) to 9Router Pro
+# Migrating from 9Router (original) to 9router_Pro
 
-9Router Pro is a **standalone edition** built on the same 9Router v0.5.104
+9router_Pro is a **standalone edition** built on the same 9Router v0.5.104
 codebase — it is not a plugin, and it does not connect to or control your
 existing 9Router install. You run Pro *instead of* the original, and your
 data moves over through the built-in backup file. The whole migration takes
@@ -26,7 +26,7 @@ about two minutes, and your client API keys keep working unchanged.
 3. Save the downloaded `.json` file somewhere safe — it contains your
    provider credentials and API keys.
 
-## Step 2 — Install 9Router Pro
+## Step 2 — Install 9router_Pro
 
 Follow the **Quick Start (Pro)** in the [README](./README.md) (from source or
 Docker). The original listens on port 20128 by default and Pro on **20127**,

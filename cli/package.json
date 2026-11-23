@@ -1,17 +1,17 @@
 {
-  "name": "9router-pro",
+  "name": "9router_pro",
   "version": "0.5.109-pro.31",
-  "description": "9Router Pro CLI - Start and manage the 9Router Pro server (Pro edition of 9Router, by Gienetic)",
+  "description": "9router_Pro CLI - Start and manage the 9router_Pro server (Pro edition of 9Router, by 0xfiann)",
   "bin": {
-    "9router-pro": "./cli.js"
+    "9router_pro": "./cli.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/giienew/9router-pro.git"
+    "url": "git+https://github.com/0xfiann/9router-pro.git"
   },
-  "homepage": "https://github.com/giienew/9router-pro#readme",
+  "homepage": "https://github.com/0xfiann/9router-pro#readme",
   "bugs": {
-    "url": "https://github.com/giienew/9router-pro/issues"
+    "url": "https://github.com/0xfiann/9router-pro/issues"
   },
   "files": [
     "cli.js",

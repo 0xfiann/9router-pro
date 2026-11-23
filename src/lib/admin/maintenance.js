@@ -1,4 +1,4 @@
-// Admin maintenance helpers (9Router Pro, pro.29) — server-only filesystem
+// Admin maintenance helpers (9router_Pro, pro.29) — server-only filesystem
 // work behind POST /api/admin/maintenance. Every destructive action is
 // gated by dashboard auth + a security-log entry in the route; these
 // helpers only do the work and report what changed.
@@ -135,7 +135,7 @@ function execFileAsync(file, args, timeoutMs = 8000) {
   });
 }
 
-// Find the PM2 process running 9Router Pro, if PM2 exists on this host.
+// Find the PM2 process running 9router_Pro, if PM2 exists on this host.
 export async function findPm2Target() {
   const res = await execFileAsync("pm2", ["jlist"]);
   if (!res.ok) return { available: false, target: null, processes: [], error: res.error };

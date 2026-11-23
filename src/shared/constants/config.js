@@ -2,38 +2,23 @@ import pkg from "../../../package.json" with { type: "json" };
 
 // App configuration
 export const APP_CONFIG = {
-  name: "9Router Pro",
-  description: "AI Infrastructure Management — by Gienetic",
+  name: "9router_Pro",
+  description: "AI Infrastructure Management — by 0xfiann",
   version: pkg.version,
 };
 
 // GitHub configuration
 export const GITHUB_CONFIG = {
-  // 9Router Pro — changelog + releases live in the Pro repo
-  changelogUrl: "https://raw.githubusercontent.com/giienew/9router-pro/refs/heads/master/CHANGELOG-PRO.md",
-  repoUrl: "https://github.com/giienew/9router-pro",
-  donateUrl: "https://raw.githubusercontent.com/giienew/9router-pro/refs/heads/master/donate.json",
+  // 9router_Pro — changelog + releases live in the fork's repo
+  changelogUrl: "https://raw.githubusercontent.com/0xfiann/9router-pro/refs/heads/master/CHANGELOG-PRO.md",
+  repoUrl: "https://github.com/0xfiann/9router-pro",
 };
 
 // Updater configuration
-// Manual-update panel commands MUST come from the npm registry, never from GitHub
-// master: master still carries the previous pro.N, so a GitHub install lands users on
-// the old version while the panel title promises the new one (pro.18 complaint).
+// The npm updater is disabled in this fork: updates ship as git deployments
+// from this repo, never as `npm i -g` installs from a registry package.
+// Only appPort remains — CLI tooling uses it as the local server port.
 export const UPDATER_CONFIG = {
-  npmPackageName: "9router-pro",
-  installCmd: "npm i -g 9router-pro",
-  installCmdLatest: "npm i -g 9router-pro --prefer-online",
-  shutdownCountdownSec: 3,
-  exitDelayMs: 500,
-  statusPort: 20129,
-  statusPollIntervalMs: 1000,
-  statusLogTailLines: 8,
-  installRetries: 3,
-  installRetryDelayMs: 5000,
-  lingerAfterDoneMs: 30000,
-  waitForExitMinMs: 5000,
-  waitForExitMaxMs: 20000,
-  waitForExitCheckMs: 500,
   appPort: 20127,
 };
 

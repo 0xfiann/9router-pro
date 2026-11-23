@@ -1,4 +1,4 @@
-// Key Quotas (9Router Pro) — per-API-key token budgets.
+// Key Quotas (9router_Pro) — per-API-key token budgets.
 // Two modes (PATCH-ABCE, 2026-11-19):
 //   - rolling window: usage inside the last `windowHours` (24h/7d/30d).
 //   - absolute (lifetime): `absolute === true` → usage counted since

@@ -1,18 +1,18 @@
 <div align="center">
-  <img src="./images/logo-wordmark-v4.png" alt="9Router Pro" width="480"/>
+  <img src="./public/logo.svg" alt="9router_Pro" width="120"/>
 
-  <img src="./images/pro-dashboard.png" alt="9Router Pro — Monitoring Dashboard" width="800"/>
+  <img src="./images/pro-dashboard.png" alt="9router_Pro — Monitoring Dashboard" width="800"/>
 
-  # 9Router Pro
+  # 9router_Pro
 
   **A Pro edition of 9Router with Prompt Injection: one injection per target — global, per API key, per model — as a system prompt or a scripted chat.**
 
-  By **Gienetic** — [GitHub](https://github.com/giienew) · [Telegram](https://t.me/gienetic)
+  By **0xfiann** — [GitHub](https://github.com/0xfiann)
 
-  [![Stars](https://img.shields.io/github/stars/giienew/9router-pro?style=social)](https://github.com/giienew/9router-pro/stargazers)
-  [![Forks](https://img.shields.io/github/forks/giienew/9router-pro?style=social)](https://github.com/giienew/9router-pro/network/members)
-  [![License](https://img.shields.io/github/license/giienew/9router-pro)](./LICENSE)
-  [![Latest Pro release](https://img.shields.io/github/v/release/giienew/9router-pro?label=release)](https://github.com/giienew/9router-pro/releases)
+  [![Stars](https://img.shields.io/github/stars/0xfiann/9router-pro?style=social)](https://github.com/0xfiann/9router-pro/stargazers)
+  [![Forks](https://img.shields.io/github/forks/0xfiann/9router-pro?style=social)](https://github.com/0xfiann/9router-pro/network/members)
+  [![License](https://img.shields.io/github/license/0xfiann/9router-pro)](./LICENSE)
+  [![Latest Pro release](https://img.shields.io/github/v/release/0xfiann/9router-pro?label=release)](https://github.com/0xfiann/9router-pro/releases)
 
   Based on [9Router](https://github.com/decolua/9router) by decolua (MIT) — rebuilt as a Pro edition.
 
@@ -146,7 +146,7 @@ Pro is designed to sit in front of an AI agent (Hermes-style setups) as its sing
 
 ## ⚖️ Pro vs Original vs Other Forks
 
-| | 9Router (original) | Typical forks | **9Router Pro** |
+| | 9Router (original) | Typical forks | **9router_Pro** |
 |---|---|---|---|
 | Base stack | Next 16 / React 19 | often older (Next 14) | Next 16 / React 19 (upstream) |
 | Custom system prompts | ❌ (fixed Caveman/Ponytail only) | per-model fields | ✅ Prompt Injection: global + per-user + per-model, prompt or chat script |
@@ -185,7 +185,7 @@ Then add a provider, and visit **Prompt Injection** to set up your injections.
 **From source:**
 
 ```bash
-git clone https://github.com/giienew/9router-pro.git
+git clone https://github.com/0xfiann/9router-pro.git
 cd 9router-pro
 npm install
 npm run build
@@ -195,7 +195,7 @@ npm run start        # dashboard on http://localhost:20127
 **With Docker** (build the image from this repo — there is no Pro image on Docker Hub):
 
 ```bash
-git clone https://github.com/giienew/9router-pro.git
+git clone https://github.com/0xfiann/9router-pro.git
 cd 9router-pro
 docker build -t 9router-pro .
 docker run -d --name 9router-pro -p 20127:20127 -v 9router-data:/app/data 9router-pro
@@ -229,8 +229,7 @@ It speaks the **OpenAI-compatible `/v1` API**, so it drops in front of the tools
 
 ## 🤝 Contributing & support
 
-- **Issues & suggestions:** open an issue on [GitHub](https://github.com/giienew/9router-pro/issues) — bugs, feature requests, and patch suggestions are all welcome. The pro.28, pro.29, pro.30 and pro.31 releases were built from community suggestions.
-- **Telegram:** [@Gieneticc](https://t.me/Gieneticc) for reports and questions.
+- **Issues & suggestions:** open an issue on [GitHub](https://github.com/0xfiann/9router-pro/issues) — bugs, feature requests, and patch suggestions are all welcome. The pro.28, pro.29, pro.30 and pro.31 releases were built from community suggestions.
 - **Donate:** the dashboard's Donate button goes to this project's own channels ([Saweria](https://saweria.co/gienetic)) — it keeps Pro improving.
 
 ## 🙏 Acknowledgments

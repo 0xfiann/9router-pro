@@ -30,7 +30,7 @@ export default function APIPageClient({ machineId }) {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
-  // 9Router Pro: optional settings applied to the key right at creation time,
+  // 9router_Pro: optional settings applied to the key right at creation time,
   // so a reseller key is fully configured in one step (editable later in the
   // key's Edit modal).
   const emptyKeyDraft = () => ({
@@ -948,7 +948,7 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
-  // 9Router Pro: save a key's rate limits (null clears them).
+  // 9router_Pro: save a key's rate limits (null clears them).
   const handleUpdateKeyLimits = async (id, limits) => {
     try {
       const res = await fetch(`/api/keys/${id}`, {
@@ -970,7 +970,7 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
-  // 9Router Pro: save a key's expiry (null clears it).
+  // 9router_Pro: save a key's expiry (null clears it).
   const handleUpdateKeyExpiry = async (id, expiresAt) => {
     try {
       const res = await fetch(`/api/keys/${id}`, {
@@ -994,7 +994,7 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
-  // 9Router Pro: save a key's token quota (null clears it).
+  // 9router_Pro: save a key's token quota (null clears it).
   const handleUpdateKeyQuota = async (id, quota) => {
     try {
       const res = await fetch(`/api/keys/${id}`, {
@@ -1594,7 +1594,7 @@ export default function APIPageClient({ machineId }) {
             <span className="mt-0.5 block text-[11px] text-text-muted">Opsional. Jika diisi, nilai ini dipakai apa adanya (prefix diabaikan). Tanpa spasi, hanya huruf, angka, - dan _. Minimal 12 karakter.</span>
           </div>
 
-          {/* 9Router Pro: optional settings, applied at creation */}
+          {/* 9router_Pro: optional settings, applied at creation */}
           <div className="border-t border-border-subtle pt-3">
             <div className="flex items-baseline gap-2">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Key settings</span>

@@ -1,27 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { APP_CONFIG, GITHUB_CONFIG } from "@/shared/constants/config";
-import DonateModal from "./DonateModal";
 
-// 9Router Pro welcome popup — shown once on first dashboard open.
+// 9router_Pro welcome popup — shown once on first dashboard open.
 // The "seen" flag lives in DashboardLayout (localStorage), this modal is
-// a dumb presentational shell like DonateModal: isOpen + onClose.
+// a dumb presentational shell: isOpen + onClose.
 export const WELCOME_STORAGE_KEY = "9router-pro-welcome-v1";
-export const TELEGRAM_URL = "https://t.me/Gieneticc";
 
 const THANKS_TO = [
   "Allah SWT",
-  "KRYZEN TEAM",
-  "Komunitas Telegram",
   "decolua — pembuat 9Router original",
-  "dan kamu, para pengguna setia 9Router Pro",
+  "dan kamu, para pengguna setia 9router_Pro",
 ];
 
 export default function WelcomeModal({ isOpen, onClose }) {
-  const [donateOpen, setDonateOpen] = useState(false);
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -55,22 +50,21 @@ export default function WelcomeModal({ isOpen, onClose }) {
         {/* Header — Pro logo + name */}
         <div className="flex flex-col items-center pt-7 pb-2 px-6 text-center">
           <img
-            src="/logo-pro-v3.png"
-            alt="9Router Pro"
+            src="/logo.svg"
+            alt="9router_Pro"
             className="size-16 rounded-2xl shadow-lg"
           />
           <h2 className="mt-3 text-xl font-bold text-text-main">
-            9Router <span className="bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent">Pro</span>
+            9router_<span className="bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent">Pro</span>
           </h2>
           <p className="mt-0.5 text-xs font-semibold tracking-widest text-text-muted uppercase">
-            Mod Edition &middot; v{APP_CONFIG.version}
+            v{APP_CONFIG.version}
           </p>
         </div>
 
         <div className="px-6 pb-6 overflow-y-auto flex-1">
           <p className="text-sm text-text-main text-center leading-relaxed">
-            Terima kasih telah menggunakan <strong>9Router Pro</strong> &mdash; Mod
-            Edition, powered by <strong>Gienetic</strong>.
+            Terima kasih telah menggunakan <strong>9router_Pro</strong>.
           </p>
           <p className="mt-3 text-sm text-text-muted text-center leading-relaxed">
             Satu pintu untuk semua model AI, semua provider, dan semua API key kamu
@@ -79,17 +73,17 @@ export default function WelcomeModal({ isOpen, onClose }) {
           </p>
           <p className="mt-3 text-sm text-text-muted text-center leading-relaxed">
             Saran dan laporan kamu sangat berarti. Kenyamanan kamu saat memakai
-            9Router Pro adalah prioritas &mdash; kalau ada yang kurang pas, jangan
+            9router_Pro adalah prioritas &mdash; kalau ada yang kurang pas, jangan
             ragu untuk melapor.
           </p>
           <p className="mt-3 text-sm text-text-muted text-center leading-relaxed">
             Bantu kami berkembang: beri <strong className="text-text-main">&#9733; Star di
-            GitHub</strong> dan bagikan 9Router Pro ke grup, komunitas, dan
+            GitHub</strong> dan bagikan 9router_Pro ke grup, komunitas, dan
             teman-teman kamu &mdash; supaya mereka juga punya router AI yang
             mempermudah kerja mereka.
           </p>
           <p className="mt-3 text-sm text-text-main text-center leading-relaxed">
-            Saya akan terus meningkatkan 9Router Pro semaksimal mungkin, untuk
+            Saya akan terus meningkatkan 9router_Pro semaksimal mungkin, untuk
             pengalaman penggunaan yang lebih optimal.
           </p>
 
@@ -112,24 +106,7 @@ export default function WelcomeModal({ isOpen, onClose }) {
             >
               Mulai Menggunakan
             </button>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setDonateOpen(true)}
-                className="inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl text-xs font-medium border border-black/10 dark:border-white/10 text-text-main hover:border-pink-500/40 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px] text-pink-500">volunteer_activism</span>
-                Donasi
-              </button>
-              <a
-                href={TELEGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl text-xs font-medium border border-black/10 dark:border-white/10 text-text-main hover:border-pink-500/40 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px] text-sky-500">send</span>
-                Telegram
-              </a>
+            <div className="grid grid-cols-1 gap-2">
               <a
                 href={GITHUB_CONFIG.repoUrl}
                 target="_blank"
@@ -152,7 +129,6 @@ export default function WelcomeModal({ isOpen, onClose }) {
           <span className="material-symbols-outlined text-[20px]">close</span>
         </button>
       </div>
-      <DonateModal isOpen={donateOpen} onClose={() => setDonateOpen(false)} />
     </div>,
     document.body
   );

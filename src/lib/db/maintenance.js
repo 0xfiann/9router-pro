@@ -1,4 +1,4 @@
-// Scheduled DB maintenance (9Router Pro): prune old per-request history and
+// Scheduled DB maintenance (9router_Pro): prune old per-request history and
 // expired cache rows, then reclaim space. Daily rollups (usageDaily) are
 // aggregates and are kept forever — pruning them would erase long-term
 // stats. VACUUM is best-effort: some adapters (sql.js) persist differently
