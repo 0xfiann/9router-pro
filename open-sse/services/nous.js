@@ -12,7 +12,10 @@ export const NOUS_OAUTH_SCOPE = "inference:invoke inference:mint_agent_key";
 // validating a Portal key or OAuth token never consumes paid credits. Only
 // successful inference proves the Bearer credential was accepted; Nous can
 // return 4xx responses before authentication (e.g. 402 when Authorization is absent).
-export const NOUS_VALIDATION_MODEL = "poolside/laguna-xs-2.1:free";
+// NOTE: the probe model must exist in the live Nous catalog — Nous removes
+// free models without notice (poolside/laguna-xs-2.1:free was delisted
+// 2026-11-23 and the dead probe made every Nous connection test fail 404).
+export const NOUS_VALIDATION_MODEL = "upstage/solar-mini4:free";
 
 const asPositiveInteger = (value) => {
   const parsed = Number(value);

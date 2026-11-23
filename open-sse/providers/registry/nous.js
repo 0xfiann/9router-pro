@@ -49,24 +49,28 @@ const nous = {
     agentKeyUrl: NOUS_AGENT_KEY_URL,
     scope: NOUS_OAUTH_SCOPE,
   },
+  // Live free-tier models, verified against
+  // https://inference-api.nousresearch.com/v1/models on 2026-11-23.
+  // Nous delists free models without notice; refresh this list when a
+  // model starts 404ing.
   models: [
     {
-      id: "meituan/longcat-2.0:free",
-      name: "Meituan: LongCat 2.0",
-      contextLength: 1048756,
-      maxOutputTokens: 262144,
-    },
-    {
-      id: "meituan/longcat-2.5-preview:free",
-      name: "Meituan: LongCat 2.5 Preview",
+      id: "meituan/longcat-2.5:free",
+      name: "Meituan: LongCat 2.5",
       contextLength: 1048576,
       maxOutputTokens: 131072,
     },
     {
-      id: "stepfun/step-5-preview:free",
-      name: "StepFun: Step 5 Preview",
+      id: "qwen/qwen4-max:free",
+      name: "Qwen: Qwen4 Max",
       contextLength: 1000000,
-      maxOutputTokens: 64000,
+      maxOutputTokens: 131072,
+    },
+    {
+      id: "tencent/hy4-flash:free",
+      name: "Tencent: Hy4 Flash",
+      contextLength: 1048576,
+      maxOutputTokens: 65536,
     },
     {
       id: "upstage/solar-mini4:free",
@@ -77,26 +81,8 @@ const nous = {
     {
       id: "stepfun/step-3.7-flash:free",
       name: "StepFun: Step 3.7 Flash",
-      contextLength: 262144,
-      maxOutputTokens: 256000,
-    },
-    {
-      id: "poolside/laguna-s-2.1:free",
-      name: "Poolside: Laguna S 2.1",
-      contextLength: 262144,
-      maxOutputTokens: 131072,
-    },
-    {
-      id: "poolside/laguna-xs-2.1:free",
-      name: "Poolside: Laguna XS 2.1",
-      contextLength: 262144,
-      maxOutputTokens: 32768,
-    },
-    {
-      id: "stealth/missingno",
-      name: "MissingNo",
-      contextLength: 262144,
-      maxOutputTokens: 131072,
+      contextLength: 256000,
+      maxOutputTokens: 230400,
     },
   ],
   serviceKinds: ["llm", "imageToText"],
