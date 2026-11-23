@@ -150,9 +150,6 @@ export default function APIPageClient({ machineId }) {
   const [tunnelEverReachable, setTunnelEverReachable] = useState(false);
   const [tsEverReachable, setTsEverReachable] = useState(false);
 
-  // API key visibility toggle state
-  const [visibleKeys, setVisibleKeys] = useState(new Set());
-
   // Client-side local/remote detection (UI hint only, not a security gate)
   const [isRemoteHost, setIsRemoteHost] = useState(false);
   useEffect(() => {
@@ -1016,19 +1013,11 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
-  const maskKey = (fullKey) => {
-    if (!fullKey || fullKey.length <= 10) return fullKey || "";
-    return fullKey.slice(0, 6) + "•".repeat(fullKey.length - 10) + fullKey.slice(-4);
-  };
-
-  const toggleKeyVisibility = (keyId) => {
-    setVisibleKeys(prev => {
-      const next = new Set(prev);
-      if (next.has(keyId)) next.delete(keyId);
-      else next.add(keyId);
-      return next;
-    });
-  };
+  // Keys are stored hashed at rest and the list API only returns
+  // `keyMasked` (e.g. ********bfda) — the full value is shown exactly
+  // once, in the created/regenerated modal. There is no reveal or copy
+  // for listed keys by design; Regenerate is the way to get a new
+  // copyable value.
 
   const [baseUrl, setBaseUrl] = useState("/v1");
 
@@ -1443,27 +1432,8 @@ export default function APIPageClient({ machineId }) {
                   <p className="text-sm font-medium">{key.name}</p>
                   <div className="flex items-center gap-2 mt-1 min-w-0 flex-wrap">
                     <code className="text-xs text-text-muted font-mono break-all min-w-0">
-                      {visibleKeys.has(key.id) ? key.key : maskKey(key.key)}
+                      {key.keyMasked || "********"}
                     </code>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => toggleKeyVisibility(key.id)}
-                        className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-all"
-                        title={visibleKeys.has(key.id) ? "Hide key" : "Show key"}
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {visibleKeys.has(key.id) ? "visibility_off" : "visibility"}
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => copy(key.key, key.id)}
-                        className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-all"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {copied === key.id ? "check" : "content_copy"}
-                        </span>
-                      </button>
-                    </div>
                   </div>
                   <p className="text-xs text-text-muted mt-1">
                     Created {new Date(key.createdAt).toLocaleDateString()}
@@ -1791,32 +1761,15 @@ export default function APIPageClient({ machineId }) {
               <span className="text-sm text-text-main">Key value</span>
               <div className="mt-2 flex items-center gap-2 min-w-0 flex-wrap">
                 <code className="text-xs text-text-muted font-mono break-all min-w-0">
-                  {visibleKeys.has(editTarget.id) ? editTarget.key : maskKey(editTarget.key)}
+                  {editTarget.keyMasked || "********"}
                 </code>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => toggleKeyVisibility(editTarget.id)}
-                    className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-all"
-                    title={visibleKeys.has(editTarget.id) ? "Hide key" : "Show key"}
-                  >
-                    <span className="material-symbols-outlined text-[14px]">
-                      {visibleKeys.has(editTarget.id) ? "visibility_off" : "visibility"}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => copy(editTarget.key, editTarget.id)}
-                    className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-all"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">
-                      {copied === editTarget.id ? "check" : "content_copy"}
-                    </span>
-                  </button>
                   <Button size="sm" variant="outline" icon="refresh" onClick={() => handleRegenerateKey(editTarget)}>
                     Regenerate
                   </Button>
                 </div>
               </div>
-              <span className="mt-1 block text-[11px] text-text-muted">Regenerate replaces the value immediately (old value dies at once) and shows the new value once for copying.</span>
+              <span className="mt-1 block text-[11px] text-text-muted">Keys are stored hashed, so the full value is shown only once, when created or regenerated. Regenerate replaces the value immediately (old value dies at once) and shows the new value once for copying.</span>
             </div>
             <div>
               <Input
