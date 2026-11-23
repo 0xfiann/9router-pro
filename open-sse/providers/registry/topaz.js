@@ -1,19 +1,4 @@
-export default {
-  id: "topaz",
-  alias: "topaz",
-  display: {
-    name: "Topaz",
-    icon: "image",
-    color: "#059669",
-    textIcon: "TP",
-    website: "https://topazlabs.com",
-    notice: {
-      apiKeyUrl: "https://topazlabs.com/account"
-    }
-  },
-  category: "apikey",
-  authType: "apikey",
-  serviceKinds: [
-    "image"
-  ]
-};
+// Provider removed: topaz was a placeholder with no execution path
+// (no imageConfig, no models, no transport, no image adapter). Stub kept
+// so the file tree stays identical to the sandbox; not imported by the
+// registry index.

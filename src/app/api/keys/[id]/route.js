@@ -18,11 +18,18 @@ export async function GET(request, { params }) {
     // "Live:" line in the key panel reflects current traffic instead of
     // the page-load values from the list GET.
     // Audit item 3: the stored value (hash, or legacy plaintext) never
-    // leaves the server on a read — only keyMasked / last4. Usage below is
-    // keyed by the stored value, so for a hashed row tpmUsed reads 0 (see
-    // the note in ../route.js); quota enforcement uses the presented key
-    // and is unaffected.
+    // leaves the server on a read — only keyMasked / last4. Usage below
+    // is keyed by the stored value; getKeyUsageInWindow matches hashed
+    // stored values since pro.29, so tpmUsed is a genuine figure (see
+    // the note in ../route.js). Quota enforcement uses the presented
+    // key and is unaffected.
+    // P1 #16: include quota / quotaUsed / limits, matching the list
+    // GET's shape — callers should not have to guess which read has them.
+    const savedQuota = await getKeyQuota(id);
+    key.quota = savedQuota;
+    key.quotaUsed = savedQuota ? await getKeyUsageInWindow(key.key, savedQuota.windowHours, savedQuota.resetAt, savedQuota.absolute) : 0;
     const savedLimits = await getKeyLimits(id);
+    key.limits = savedLimits;
     key.limitsUsage = {
       ...getKeyLimitUsage(id),
       tpmUsed: savedLimits?.tpm ? await getKeyUsageInWindow(key.key, 1 / 60) : 0,
@@ -103,6 +110,43 @@ export async function PUT(request, { params }) {
       const checked = validateKeyAccessInput(access);
       if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
       updateData.access = checked.value;
+    }
+
+    // P1 #9: validate quota/limits UP FRONT, matching bulk PATCH —
+    // garbage must 400, never silently clear the stored config.
+    // setKeyQuota/setKeyLimits delete on clean failure (cleanQuota ->
+    // null -> remove), so without this a typo wiped the whole budget.
+    // Explicit null still clears (whole object or a field), as in PATCH.
+    const isPosNum = (v) => (typeof v === "number" && Number.isFinite(v) && v > 0) || (typeof v === "string" && /^\d+(\.\d+)?$/.test(v.trim()) && Number(v) > 0);
+    if (quota !== undefined && quota !== null && typeof quota !== "object") {
+      return NextResponse.json({ error: "Quota must be an object" }, { status: 400 });
+    }
+    if (limits !== undefined && limits !== null && typeof limits !== "object") {
+      return NextResponse.json({ error: "Limits must be an object" }, { status: 400 });
+    }
+    if (quota && typeof quota === "object") {
+      if (quota.limit !== undefined && quota.limit !== null && !isPosNum(quota.limit)) {
+        return NextResponse.json({ error: "Quota limit must be a positive number" }, { status: 400 });
+      }
+      if (quota.costLimit !== undefined && quota.costLimit !== null && !isPosNum(quota.costLimit)) {
+        return NextResponse.json({ error: "Quota Max spend must be a positive number" }, { status: 400 });
+      }
+      if (quota.windowHours !== undefined && quota.windowHours !== null && !Number.isFinite(Number(quota.windowHours))) {
+        return NextResponse.json({ error: "Quota window must be a number" }, { status: 400 });
+      }
+      if (quota.absolute !== undefined && quota.absolute !== null && typeof quota.absolute !== "boolean") {
+        return NextResponse.json({ error: "Quota absolute must be a boolean" }, { status: 400 });
+      }
+      if (quota.resetAt !== undefined && quota.resetAt !== null && !Number.isFinite(new Date(quota.resetAt).getTime())) {
+        return NextResponse.json({ error: "Quota resetAt must be an ISO date or null" }, { status: 400 });
+      }
+    }
+    if (limits && typeof limits === "object") {
+      for (const [f, v] of Object.entries(limits)) {
+        if (v !== null && !isPosNum(v)) {
+          return NextResponse.json({ error: `Limit ${f} must be a positive number` }, { status: 400 });
+        }
+      }
     }
 
     // One-time disclosure (audit item 3 follow-up): when this PUT changed

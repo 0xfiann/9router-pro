@@ -36,13 +36,14 @@ export async function GET() {
         };
       }
     } catch {}
-    // NOTE (audit item 3): usageHistory rows are keyed by the PLAINTEXT
-    // presented key, while apiKeys.key is now a hash — so for a hashed
-    // row getKeyUsageInWindow(storedHash) matches nothing and quotaUsed /
-    // tpmUsed read 0 in this list response. Quota ENFORCEMENT is unaffected
-    // (admission passes the presented raw key). Per-key usage display for
-    // hashed keys needs usage attribution by key id/hash — follow-up work,
-    // not a silent change: do not "fix" this by echoing plaintext here.
+    // NOTE: usageHistory rows are keyed by the PLAINTEXT presented key,
+    // while apiKeys.key is now a stored hash — but getKeyUsageInWindow
+    // (keyQuotaRepo.js) has matched hashed stored values since pro.29
+    // by hashing each window row's apiKey, so quotaUsed / tpmUsed here
+    // are genuine figures: a 0 means no usage in the window, not a
+    // lookup failure. Quota enforcement passes the presented raw key
+    // and keeps the fast indexed equality query. Do not "fix" a 0 by
+    // echoing plaintext here.
     return NextResponse.json({ keys: keys.map(toMaskedApiKeyRecord) });
   } catch (error) {
     console.log("Error fetching keys:", error);
@@ -92,6 +93,15 @@ export async function POST(request) {
     // Always get machineId from server
     const machineId = await getConsistentMachineId();
     const apiKey = await createApiKey(trimmedName, machineId, customValue ? { customKey: customValue } : { prefix: keyPrefix });
+
+    // P1 #14: snapshot on first key creation (fire-and-forget — the
+    // auto-backup only snapshots every 24h, so without this the first
+    // live data has no restore point until the next scheduled run).
+    // Dynamic import, same as the keyAccess import in PATCH below:
+    // the snapshot must never block or fail the 201.
+    import("@/lib/backup/autoBackup")
+      .then((m) => m.maybeSnapshotOnFirstUse?.())
+      .catch(() => {});
 
     // Audit item 3: `key` below is the ONE-TIME plaintext from creation
     // (createApiKey stores only its hash). This 201 is the only response

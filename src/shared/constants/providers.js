@@ -80,14 +80,17 @@ export const WEB_COOKIE_PROVIDERS = byCategory("webCookie");
 // to /media-providers/webSearch/<id> and /webFetch/<id>, so those keep
 // working through WEB_KIND_CONFIGS below (labels + endpoints only —
 // they do not re-create list routes).
+// imageToText rides /v1/chat/completions (vision messages) — no dedicated
+// /v1/images/understanding route exists; models/info maps this kind here too.
+// "music" is not listed: no /v1/audio/music route exists and no provider
+// declares the kind, so the kind page and detail pages 404 via notFound().
 export const MEDIA_PROVIDER_KINDS = [
   { id: "embedding",   label: "Embedding",      icon: "data_array",        endpoint: { method: "POST", path: "/v1/embeddings" } },
   { id: "image",       label: "Text to Image",  icon: "brush",             endpoint: { method: "POST", path: "/v1/images/generations" } },
-  { id: "imageToText", label: "Image to Text",  icon: "image_search",      endpoint: { method: "POST", path: "/v1/images/understanding" } },
+  { id: "imageToText", label: "Image to Text",  icon: "image_search",      endpoint: { method: "POST", path: "/v1/chat/completions" } },
   { id: "tts",         label: "Text To Speech", icon: "record_voice_over", endpoint: { method: "POST", path: "/v1/audio/speech" } },
   { id: "stt",         label: "Speech To Text", icon: "mic",               endpoint: { method: "POST", path: "/v1/audio/transcriptions" } },
   { id: "video",       label: "Video",          icon: "movie",             endpoint: { method: "POST", path: "/v1/videos/generations" } },
-  { id: "music",       label: "Music",          icon: "music_note",        endpoint: { method: "POST", path: "/v1/audio/music" } },
   { id: "systemone",   label: "System One",     icon: "psychology",        endpoint: { method: "POST", path: "/v1/systemone" }, isNew: true },
 ];
 

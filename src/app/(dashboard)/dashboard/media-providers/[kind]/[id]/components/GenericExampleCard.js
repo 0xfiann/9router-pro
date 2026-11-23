@@ -44,8 +44,8 @@ export function GenericExampleCard({ providerId, kind }) {
 
   // Get models for this kind (e.g., type="image")
   const kindModels = getModelsByProviderId(providerId).filter((m) => getModelKind(m) === kind);
-  // Kinds that need a model identifier in the request (image/video/music/systemone)
-  const KIND_NEEDS_MODEL = new Set(["image", "video", "music", "imageToText", "systemone"]);
+  // Kinds that need a model identifier in the request (image/video/systemone)
+  const KIND_NEEDS_MODEL = new Set(["image", "video", "imageToText", "systemone"]);
   const needsModel = KIND_NEEDS_MODEL.has(kind);
   const allowManualModel = needsModel && kindModels.length === 0;
   const [selectedModel, setSelectedModel] = useState(kindModels[0]?.id ?? "");
@@ -124,15 +124,31 @@ export function GenericExampleCard({ providerId, kind }) {
       },
     },
   } : {};
-  const requestBody = {
-    model: modelFull,
-    [exConfig.bodyKey]: input,
-    ...exConfig.extraBody,
-    ...extraBodyFromFields,
-    ...systemoneQuestions,
-    ...(supportsEdit && effectiveRefImage ? { image: effectiveRefImage } : {}),
-    ...(supportsMask && effectiveMaskImage ? { mask_image: effectiveMaskImage } : {}),
-  };
+  // imageToText rides /v1/chat/completions (vision): the generic
+  // { [bodyKey]: input } shape cannot express a messages array, so build
+  // the vision request here. The prompt comes from extraBody.prompt.
+  const requestBody = kind === "imageToText"
+    ? {
+        model: modelFull,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: exConfig.extraBody?.prompt || "Describe this image in detail" },
+              { type: "image_url", image_url: { url: input } },
+            ],
+          },
+        ],
+      }
+    : {
+        model: modelFull,
+        [exConfig.bodyKey]: input,
+        ...exConfig.extraBody,
+        ...extraBodyFromFields,
+        ...systemoneQuestions,
+        ...(supportsEdit && effectiveRefImage ? { image: effectiveRefImage } : {}),
+        ...(supportsMask && effectiveMaskImage ? { mask_image: effectiveMaskImage } : {}),
+      };
 
   // Streaming supported for codex image (Plus/Pro accounts) — disabled when binary output requested
   const wantBinary = kind === "image" && imageOutputFormat === "binary";

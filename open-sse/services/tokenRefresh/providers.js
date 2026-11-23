@@ -783,6 +783,11 @@ export async function refreshMiniMaxCodeToken(provider, refreshToken, log) {
 
 // ── Nous Research Portal (hermes-cli) ────────────────────────────────────────
 // Flow: refresh_token → new access_token → mint fresh agent_key.
+// The agent-key mint endpoint was retired upstream (410
+// session_key_minting_retired); the OAuth access token is the fallback and
+// works fine. Remember the retirement process-wide so every refresh tick
+// does not re-hit the dead endpoint and spam the error log.
+let nousAgentKeyMintRetired = false;
 export async function refreshNousToken(refreshToken, log) {
   if (!refreshToken) return null;
   return dedupRefresh("nous", refreshToken, async () => {
@@ -820,32 +825,41 @@ export async function refreshNousToken(refreshToken, log) {
       let agentKey = null;
       let agentKeyId = null;
       let agentKeyExpiresAt = null;
-      try {
-        const agentKeyResponse = await fetch("https://portal.nousresearch.com/api/oauth/agent-key", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${tokenData.access_token}`,
-          },
-          body: JSON.stringify({
-            min_ttl_seconds: 7200,
-          }),
-          signal: AbortSignal.timeout(15000),
-        });
+      // Skip the mint entirely once the endpoint has answered 410 — the
+      // fallback below (apiKey: agentKey || access_token) is unchanged.
+      if (!nousAgentKeyMintRetired) {
+        try {
+          const agentKeyResponse = await fetch("https://portal.nousresearch.com/api/oauth/agent-key", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${tokenData.access_token}`,
+            },
+            body: JSON.stringify({
+              min_ttl_seconds: 7200,
+            }),
+            signal: AbortSignal.timeout(15000),
+          });
 
-        if (agentKeyResponse.ok) {
-          const agentKeyData = await agentKeyResponse.json();
-          agentKey = agentKeyData.api_key || null;
-          agentKeyId = agentKeyData.key_id || null;
-          agentKeyExpiresAt = agentKeyData.expires_at || null;
-          log?.info?.("TOKEN_REFRESH", "Nous agent key minted successfully");
-        } else {
-          const error = await agentKeyResponse.text().catch(() => "");
-          log?.warn?.("TOKEN_REFRESH", "Failed to mint Nous agent key, falling back to access_token", { error });
+          if (agentKeyResponse.ok) {
+            const agentKeyData = await agentKeyResponse.json();
+            agentKey = agentKeyData.api_key || null;
+            agentKeyId = agentKeyData.key_id || null;
+            agentKeyExpiresAt = agentKeyData.expires_at || null;
+            log?.info?.("TOKEN_REFRESH", "Nous agent key minted successfully");
+          } else {
+            const error = await agentKeyResponse.text().catch(() => "");
+            if (agentKeyResponse.status === 410) {
+              nousAgentKeyMintRetired = true;
+              log?.info?.("TOKEN_REFRESH", "Nous agent key mint retired upstream (410); using access_token from now on");
+            } else {
+              log?.warn?.("TOKEN_REFRESH", "Failed to mint Nous agent key, falling back to access_token", { error });
+            }
+          }
+        } catch (mintErr) {
+          log?.warn?.("TOKEN_REFRESH", `Nous agent key mint error: ${mintErr?.message || mintErr}`);
         }
-      } catch (mintErr) {
-        log?.warn?.("TOKEN_REFRESH", `Nous agent key mint error: ${mintErr?.message || mintErr}`);
       }
 
       return {

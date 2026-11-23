@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Card, Button, ConfirmModal, Badge } from "@/shared/components";
+import { Card, Button, Input, Modal, ConfirmModal, Badge } from "@/shared/components";
+import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { formatBytes } from "@/shared/utils/adminHelpers.js";
 import SpamRankingClient from "../spam/SpamRankingClient";
 
@@ -111,6 +112,9 @@ export default function AdminClient() {
   const [busy, setBusy] = useState(null);
   const [pending, setPending] = useState(null);
   const [pendingKey, setPendingKey] = useState(null);
+  const [createdKey, setCreatedKey] = useState(null);
+  const [createdKeyName, setCreatedKeyName] = useState("");
+  const { copied, copy } = useCopyToClipboard();
   const [restartState, setRestartState] = useState(null);
   const restartTimer = useRef(null);
 
@@ -268,12 +272,20 @@ export default function AdminClient() {
         });
         setNotice(`Key "${key.name}" ${kind === "pause" ? "paused" : "resumed"}.`);
       } else if (kind === "regenerate") {
-        await fetchJson(`/api/keys/${key.id}`, {
+        const data = await fetchJson(`/api/keys/${key.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ regenerate: true }),
         });
-        setNotice(`Key "${key.name}" regenerated. The new value is NOT shown anywhere (masked-only reads). Update your clients from the Endpoint page, which shows the one-time value on creation only.`);
+        // The PUT returns the new plaintext once in data.key.key (like POST
+        // 201); surface it in the one-time modal instead of discarding it.
+        if (data?.key?.key) {
+          setCreatedKey(data.key.key);
+          setCreatedKeyName(key.name);
+          setNotice(`Key "${key.name}" regenerated. Copy the new value below — it is shown only once.`);
+        } else {
+          setNotice(`Key "${key.name}" regenerated, but the new value was not returned. Regenerate again from the Endpoint page to see it.`);
+        }
       } else if (kind === "reset-usage") {
         await fetchJson(`/api/keys/${key.id}/reset`, { method: "POST" });
         setNotice(`Usage counter reset for "${key.name}".`);
@@ -446,7 +458,7 @@ export default function AdminClient() {
                           <Button variant="outline" size="xs" loading={busy === `reset-usage-${k.id}`} onClick={() => keyAction(k, "reset-usage")} disabled={!k.quota}>Reset usage</Button>
                           <Button
                             variant="outline" size="xs"
-                            onClick={() => setPendingKey({ key: k, kind: "regenerate", title: "Regenerate this key?", message: `This replaces the value of "${k.name}". The new value is NOT shown anywhere. Key reads are masked-only, so update your clients right away from the Endpoint page flow. The old value stops working immediately.` })}
+                            onClick={() => setPendingKey({ key: k, kind: "regenerate", title: "Regenerate this key?", message: `This replaces the value of "${k.name}". The old value stops working immediately. The new value is shown once, right after regenerating — copy it before closing that dialog.` })}
                           >
                             Regenerate
                           </Button>
@@ -528,6 +540,40 @@ export default function AdminClient() {
         confirmText="Confirm"
         loading={!!busy}
       />
+      {/* Regenerated Key Modal — mirrors the Endpoint page's one-time modal */}
+      <Modal
+        isOpen={!!createdKey}
+        title="API Key Regenerated"
+        onClose={() => { setCreatedKey(null); setCreatedKeyName(""); }}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
+            <p className="mb-2 text-sm font-medium text-yellow-800 dark:text-yellow-200">
+              Save this key now!
+            </p>
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              This is the only time you will see the new value for &quot;{createdKeyName}&quot;. Store it securely.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={createdKey || ""}
+              readOnly
+              className="flex-1 font-mono text-sm"
+            />
+            <Button
+              variant="secondary"
+              icon={copied === "created_key" ? "check" : "content_copy"}
+              onClick={() => copy(createdKey, "created_key")}
+            >
+              {copied === "created_key" ? "Copied!" : "Copy"}
+            </Button>
+          </div>
+          <Button onClick={() => { setCreatedKey(null); setCreatedKeyName(""); }} fullWidth>
+            Done
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

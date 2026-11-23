@@ -4,7 +4,7 @@ import p1 from "./alicode.js";
 import p2 from "./anthropic.js";
 import p3 from "./antigravity.js";
 import p4 from "./assemblyai.js";
-import p5 from "./aws-polly.js";
+// import p5 from "./aws-polly.js"; // removed — placeholder, no TTS handler
 import p6 from "./azure.js";
 import p7 from "./black-forest-labs.js";
 import p8 from "./blackbox.js";
@@ -89,7 +89,7 @@ import p139 from "./sensenova.js";
 import p84 from "./stability-ai.js";
 import p85 from "./tavily.js";
 import p86 from "./together.js";
-import p87 from "./topaz.js";
+// import p87 from "./topaz.js"; // removed — placeholder, no image path
 import p88 from "./tortoise.js";
 import p89 from "./venice.js";
 import p90 from "./vercel-ai-gateway.js";
@@ -157,7 +157,7 @@ export default [
   p2,
   p3,
   p4,
-  p5,
+  // p5, // aws-polly — removed, placeholder
   p6,
   p7,
   p8,
@@ -242,7 +242,7 @@ export default [
   p84,
   p85,
   p86,
-  p87,
+  // p87, // topaz — removed, placeholder
   p88,
   p89,
   p90,

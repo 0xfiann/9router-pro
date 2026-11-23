@@ -19,6 +19,8 @@
 // (rpm/rph/rpd/concurrency) are in-memory and apply to every modality
 // regardless.
 import { getApiKeyByKey, checkKeyQuota, getKeyLimits, getKeyUsageInWindow, isKeyExpired } from "@/lib/localDb";
+import { getAdapter } from "@/lib/db/driver.js";
+import { recordQuotaPressure, quotaPressureLevel } from "@/lib/trustEvents.js";
 import { peekKeyLimits, admitKeyRequest } from "@/lib/keyRateLimiter.js";
 import { extractApiKey } from "./auth.js";
 import { errorResponse } from "open-sse/utils/error.js";
@@ -32,6 +34,29 @@ const LIMIT_MESSAGES = {
   rpd: (v) => `API key rate limit exceeded (${v.used}/${v.limit} requests in the last 24 hours)`,
   concurrency: (v) => `API key concurrency limit exceeded (${v.limit} requests already in flight)`,
 };
+
+// P1 #15: quota-pressure warnings on the request path, not only on
+// dashboard Keys-page loads. The used/cap numbers come from the
+// checkKeyQuota verdict already in hand — no extra quota read. Only
+// fires at >=90% (warn) or the cap (critical): the below-threshold
+// re-arm stays on the dashboard path, so a normal request never writes
+// to the trust log. recordQuotaPressure dedupes unread events of the
+// same kind+subject, so a key hovering at 95% does not spam.
+function maybeRecordQuotaPressure(keyRecord, verdict) {
+  const quota = verdict?.quota;
+  if (!quota || !keyRecord) return;
+  const subject = keyRecord.name || keyRecord.id;
+  if (Number(quota.limit) > 0 && quotaPressureLevel(verdict.used, quota.limit)) {
+    getAdapter()
+      .then((db) => recordQuotaPressure(db, subject, verdict.used, quota.limit, "tokens"))
+      .catch(() => {});
+  }
+  if (Number(quota.costLimit) > 0 && verdict.costUsed !== undefined && quotaPressureLevel(verdict.costUsed, quota.costLimit)) {
+    getAdapter()
+      .then((db) => recordQuotaPressure(db, subject, verdict.costUsed, quota.costLimit, "cost"))
+      .catch(() => {});
+  }
+}
 
 // Returns { response } when the key is blocked, { release, keyRecord,
 // rawKey, hasQuota } when admitted, or null when there is no key, no key
@@ -68,6 +93,9 @@ export async function admitKey(request) {
       release = admitKeyRequest(keyRecord.id);
     }
     const quota = await checkKeyQuota(keyRecord.id, rawKey);
+    // P1 #15: evaluate quota pressure at admission — this also covers
+    // the blocked-at-cap case, which never reaches the completion hook.
+    maybeRecordQuotaPressure(keyRecord, quota);
     if (quota.blocked) {
       // Structured webhook event (P3-30): quota exceeded, off by default.
       // The key value itself is never sent — only its dashboard name.
@@ -101,6 +129,9 @@ export async function admitKey(request) {
 export function recheckKeyQuotaAfterCompletion(admission) {
   if (!admission?.hasQuota) return;
   checkKeyQuota(admission.keyRecord.id, admission.rawKey).then((verdict) => {
+    // P1 #15: a long streaming response can cross 90% (or the cap)
+    // mid-stream — warn now instead of waiting for the next request.
+    maybeRecordQuotaPressure(admission.keyRecord, verdict);
     if (verdict.blocked) {
       log.warn("QUOTA", `Key "${admission.keyRecord.name}" crossed quota during request (${verdict.used}/${verdict.quota.limit})`);
       emitQuotaWebhook({

@@ -6,8 +6,6 @@ const MEDIA_ONLY_ALIASES = {
   el: "elevenlabs",
   jina: "jina-ai",
   "jina-ai": "jina-ai",
-  polly: "aws-polly",
-  "aws-polly": "aws-polly",
 };
 
 const ALIAS_TO_PROVIDER_ID = { ...MEDIA_ONLY_ALIASES };

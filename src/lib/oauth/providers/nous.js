@@ -1,5 +1,12 @@
 import { NOUS_CONFIG } from "../constants/oauth.js";
 
+// Hermes Agent session-key minting is retired upstream (410
+// session_key_minting_retired); the OAuth access token is the fallback and
+// works fine. Remember the retirement process-wide so a later login does
+// not re-hit the dead endpoint (same cache as the refresh path in
+// open-sse/services/tokenRefresh/providers.js).
+let nousAgentKeyMintRetired = false;
+
 const nous = {
   config: NOUS_CONFIG,
   flowType: "device_code",
@@ -62,6 +69,9 @@ const nous = {
     };
   },
   postExchange: async (tokens) => {
+    // Skip the mint entirely once the endpoint has answered 410 — the
+    // fallback (apiKey: agentKey || access_token) is unchanged.
+    if (nousAgentKeyMintRetired) return { agentKey: null };
     try {
       const response = await fetch(NOUS_CONFIG.agentKeyUrl, {
         method: "POST",
@@ -77,7 +87,12 @@ const nous = {
 
       if (!response.ok) {
         const error = await response.text().catch(() => "");
-        console.warn(`[oauth] Nous agent key mint failed (${response.status}): ${error}`);
+        if (response.status === 410) {
+          nousAgentKeyMintRetired = true;
+          console.info("[oauth] Nous agent key mint retired upstream (410); using access_token from now on");
+        } else {
+          console.warn(`[oauth] Nous agent key mint failed (${response.status}): ${error}`);
+        }
         return { agentKey: null };
       }
 

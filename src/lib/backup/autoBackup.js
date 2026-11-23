@@ -79,6 +79,38 @@ export function readSnapshot(id) {
   }
 }
 
+// ---- first-use trigger -----------------------------------------------------
+// The scheduler only snapshots when the newest snapshot is >= 24 h old, so
+// a snapshot taken at first boot — before any connection or key exists —
+// leaves a restore gap of up to a day. Call sites fire this after live data
+// is created (first connection / first key); it snapshots once, when no
+// snapshot yet covers live data. Fire-and-forget safe: never throws, never
+// blocks the caller. The 24 h schedule above is unchanged.
+let firstUseInFlight = null;
+
+export async function maybeSnapshotOnFirstUse() {
+  if (firstUseInFlight) return firstUseInFlight;
+  firstUseInFlight = (async () => {
+    try {
+      if (String(process.env.AUTO_BACKUP || "").toLowerCase() === "off") return;
+      const settings = await getSettings();
+      if (settings.autoBackupEnabled === false) return;
+      const latest = readIndex()[0];
+      const counts = latest?.counts || {};
+      const coversLiveData =
+        (counts.connections || 0) > 0 || (counts.apiKeys || 0) > 0;
+      if (!latest || !coversLiveData) {
+        await createSnapshot("first-use");
+      }
+    } catch {
+      // Fire-and-forget: a failed trigger must never throw or block the caller.
+    } finally {
+      firstUseInFlight = null;
+    }
+  })();
+  return firstUseInFlight;
+}
+
 // ---- scheduler -------------------------------------------------------------
 // Same shape as the model-catalog sync: one timer chain per process, a
 // startup delay so the server serves first, hourly checks, unref'd so it

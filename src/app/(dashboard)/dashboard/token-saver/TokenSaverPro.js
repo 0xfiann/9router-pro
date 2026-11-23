@@ -239,7 +239,7 @@ function BriefMode() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     fetch("/api/keys").then((r) => r.json()).then((d) => setKeys(d.keys || [])).catch(() => {});
-    fetch("/api/models").then((r) => r.json()).then((d) => setModels((d.data || []).map((m) => m.id).filter(Boolean))).catch(() => {});
+    fetch("/api/models").then((r) => r.json()).then((d) => setModels((d.models || []).map((m) => m.routedModel || m.fullModel).filter(Boolean))).catch(() => {});
   }, []);
 
   const put = async (body) => {

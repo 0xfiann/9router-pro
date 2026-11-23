@@ -59,7 +59,9 @@ export const KIND_EXAMPLE_CONFIG = {
     defaultInput: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg",
     bodyKey: "url",
     extraBody: { prompt: "Describe this image in detail" },
-    defaultResponse: `{\n  "text": "A cat sitting on a windowsill...",\n  "model": "..."\n}`,
+    // Vision chat completions shape — the card builds a messages body for
+    // this kind (see GenericExampleCard), not the generic { url, prompt }.
+    defaultResponse: `{\n  "choices": [\n    { "message": { "role": "assistant", "content": "A cat sitting on a windowsill..." } }\n  ]\n}`,
   },
   video: {
     inputLabel: "Prompt",
@@ -72,13 +74,6 @@ export const KIND_EXAMPLE_CONFIG = {
       // an image URL or an uploaded file (sent as a data: URL).
       { key: "image", label: "Image (URL or upload)", type: "image", default: "" },
     ],
-  },
-  music: {
-    inputLabel: "Prompt",
-    inputPlaceholder: "A calm piano melody",
-    defaultInput: "A calm piano melody",
-    bodyKey: "prompt",
-    defaultResponse: `{\n  "data": [\n    { "url": "...", "format": "mp3" }\n  ]\n}`,
   },
   systemone: {
     inputLabel: "State",

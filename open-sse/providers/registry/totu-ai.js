@@ -27,15 +27,7 @@ export default {
     { id: "google/gemini-3.6-flash", name: "Gemini 3.6 Flash" },
   ],
   features: { usage: true, usageApikey: true },
-  serviceKinds: ["llm", "embedding", "image"],
-  embeddingConfig: {
-    baseUrl: "https://totu-ai.com/v1/embeddings",
-    authType: "apikey",
-    authHeader: "bearer",
-  },
-  imageConfig: {
-    baseUrl: "https://totu-ai.com/v1/images/generations",
-  },
+  serviceKinds: ["llm"],
   modelsFetcher: { url: "https://totu-ai.com/api/pricing", type: "pricing" },
   passthroughModels: true,
 };

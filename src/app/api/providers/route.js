@@ -16,6 +16,7 @@ import { AI_PROVIDERS, FREE_TIER_PROVIDERS, WEB_COOKIE_PROVIDERS, isOpenAICompat
 import { normalizeProviderId, normalizeProviderSpecificData } from "@/lib/providerNormalization";
 import { getProviderBreakerSnapshot } from "@/sse/services/providerBreaker.js";
 import { toProviderConnectionResponse } from "@/lib/providerConnectionResponse";
+import { maybeSnapshotOnFirstUse } from "@/lib/backup/autoBackup.js";
 import { getStatsCache, setStatsCache, invalidateStatsCache, STATS_TTL_MS } from "@/lib/providerStatsCache";
 
 export const dynamic = "force-dynamic";
@@ -330,6 +331,9 @@ export async function POST(request) {
     }
 
     invalidateStatsCache();
+    // First-use auto-backup: snapshot once no snapshot yet covers live data.
+    // Fire-and-forget — maybeSnapshotOnFirstUse never throws or blocks.
+    void maybeSnapshotOnFirstUse();
     return NextResponse.json(
       { connection: toProviderConnectionResponse(newConnection) },
       { status: 201 },

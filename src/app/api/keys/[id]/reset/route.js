@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getApiKeyById, getKeyQuota, resetKeyQuota, getKeyUsageInWindow } from "@/lib/localDb";
+import { toMaskedApiKeyRecord } from "@/shared/utils/maskApiKey.js";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,10 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: "Key has no quota to reset" }, { status: 400 });
     }
     const quotaUsed = await getKeyUsageInWindow(key.key, savedQuota.windowHours, savedQuota.resetAt, savedQuota.absolute);
-    return NextResponse.json({ key: { ...key, quota: savedQuota, quotaUsed } });
+    // Audit item 3 (P1 #8): mask like every other read path — the raw
+    // record's stored value (hash, or legacy plaintext) never leaves the
+    // server. quota / quotaUsed pass through untouched.
+    return NextResponse.json({ key: { ...toMaskedApiKeyRecord(key), quota: savedQuota, quotaUsed } });
   } catch (error) {
     console.log("Error resetting key quota:", error);
     return NextResponse.json({ error: "Failed to reset quota" }, { status: 500 });

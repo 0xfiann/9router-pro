@@ -30,6 +30,15 @@ export const FILTERS = {
       .filter((m) => typeof m?.id === "string")
       .map((m) => ({ id: m.id, name: m.id })),
 
+  // Plain OpenAI-format /v1/models catalog ({data:[{id,...}]}) — every id
+  // is selectable. Used by bai, dahl, orcarouter, perplexity-agent,
+  // tokenharbor, tokenrouter, venice, vercel-ai-gateway; without this entry
+  // the route 400s ("Unknown filter type") and suggested models come back empty.
+  openai: (models) =>
+    (Array.isArray(models) ? models : [])
+      .filter((m) => typeof m?.id === "string")
+      .map((m) => ({ id: m.id, name: m.name || m.id })),
+
   // models.dev returns a large catalog; keep only mimo models
   "mimo-free": (models) =>
     (Array.isArray(models) ? models : [])
