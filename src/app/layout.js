@@ -65,7 +65,7 @@ export const metadata = {
   title: "9router_Pro - AI Infrastructure Management",
   description: "One endpoint for all your AI providers. Manage keys, monitor usage, and scale effortlessly.",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon.svg?v=2",
   },
 };
 
